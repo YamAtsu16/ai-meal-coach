@@ -1,302 +1,380 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { CameraIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { TrashIcon } from '@heroicons/react/24/outline';
+import { FoodSearch } from './FoodSearch';
+import { useState, useEffect } from 'react';
+import {
+  mealRecordSchema,
+  type MealRecord,
+  type FoodItem,
+  type FoodSearchResult,
+  type DatabaseFoodItem,
+  type MealRecordFormProps
+} from '@/types/meal';
 
-interface FoodItem {
-  id?: string;
-  name: string;
-  quantity: number;
-  unit: 'g' | 'ml' | '個' | '杯';
-}
-
-interface MealRecord {
-  id: string;
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  date: string;
-  photoUrl: string | null;
-  items: FoodItem[];
-}
-
-interface Props {
-  initialData?: MealRecord;
-  onSuccess?: () => void;
-}
-
-const MEAL_TYPES = [
-  { id: 'breakfast', label: '朝食' },
-  { id: 'lunch', label: '昼食' },
-  { id: 'dinner', label: '夕食' },
-  { id: 'snack', label: '間食' },
-] as const;
-
-// バリデーションスキーマ
-const mealRecordSchema = z.object({
-  mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack'], {
-    required_error: '食事タイプを選択してください',
-  }),
-  foodItems: z.array(
-    z.object({
-      name: z.string().min(1, '食品名を入力してください'),
-      quantity: z.string().min(1, '量を入力してください'),
-      unit: z.enum(['g', 'ml', '個', '杯'], {
-        required_error: '単位を選択してください',
-      }),
-    })
-  ).min(1, '少なくとも1つの食品を入力してください'),
-});
-
-type MealRecordSchema = z.infer<typeof mealRecordSchema>;
-
-export function MealRecordForm({ initialData, onSuccess }: Props) {
-  const [photoPreview, setPhotoPreview] = useState<string | null>(initialData?.photoUrl || null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) {
+  console.log('Initial data:', initialData); // デバッグ用
 
   const {
     register,
     control,
     handleSubmit,
-    formState: { errors },
+    setValue,
+    getValues,
     watch,
     reset,
-  } = useForm<MealRecordSchema>({
+    formState: { errors },
+  } = useForm<MealRecord>({
     resolver: zodResolver(mealRecordSchema),
-    defaultValues: initialData
-      ? {
-          mealType: initialData.mealType,
-          foodItems: initialData.items.map(item => ({
-            name: item.name,
-            quantity: String(item.quantity),
-            unit: item.unit,
-          })),
-        }
-      : {
-          mealType: undefined,
-          foodItems: [{ name: '', quantity: '', unit: 'g' }],
-        },
+    defaultValues: initialData ? {
+      mealType: initialData.mealType,
+      date: initialData.date,
+      photoUrl: initialData.photoUrl,
+      items: initialData.items.map((item: DatabaseFoodItem) => {
+        console.log('Processing item:', item); // デバッグ用
+        return {
+          name: item.name,
+          quantity: item.quantity,
+          unit: item.unit,
+          nutrients: {
+            per100g: {
+              kcal: Number(item.caloriesPerHundredGrams),
+              protein: Number(item.proteinPerHundredGrams),
+              fat: Number(item.fatPerHundredGrams),
+              carbs: Number(item.carbsPerHundredGrams)
+            },
+            total: {
+              kcal: Number(item.totalCalories),
+              protein: Number(item.totalProtein),
+              fat: Number(item.totalFat),
+              carbs: Number(item.totalCarbs)
+            }
+          }
+        };
+      })
+    } : {
+      mealType: 'breakfast',
+      items: [],
+      date: new Date().toISOString(),
+      photoUrl: null,
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'foodItems',
+    name: 'items',
   });
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setPhotoPreview(URL.createObjectURL(file));
+  const watchItems = watch('items');
+
+  // 栄養価の合計を計算
+  const calculateTotalNutrients = (items: FoodItem[] = []) => {
+    return items.reduce((acc, item) => ({
+      kcal: acc.kcal + (item.nutrients?.total?.kcal || 0),
+      protein: acc.protein + (item.nutrients?.total?.protein || 0),
+      fat: acc.fat + (item.nutrients?.total?.fat || 0),
+      carbs: acc.carbs + (item.nutrients?.total?.carbs || 0),
+    }), {
+      kcal: 0,
+      protein: 0,
+      fat: 0,
+      carbs: 0,
+    });
+  };
+
+  const [totalNutrients, setTotalNutrients] = useState(calculateTotalNutrients(watchItems || []));
+
+  // 栄養価の合計を更新
+  useEffect(() => {
+    if (watchItems) {
+      setTotalNutrients(calculateTotalNutrients(watchItems));
+    }
+  }, [watchItems]);
+
+  // 食品が選択された時の処理
+  const handleFoodSelect = (selectedFood: FoodSearchResult) => {
+    const quantity = 100; // デフォルト値
+
+    const per100g = {
+      kcal: selectedFood.nutrients.ENERC_KCAL,
+      protein: selectedFood.nutrients.PROCNT,
+      fat: selectedFood.nutrients.FAT,
+      carbs: selectedFood.nutrients.CHOCDF
+    };
+
+    const total = {
+      kcal: (per100g.kcal * quantity) / 100,
+      protein: (per100g.protein * quantity) / 100,
+      fat: (per100g.fat * quantity) / 100,
+      carbs: (per100g.carbs * quantity) / 100
+    };
+
+    append({
+      name: selectedFood.label,
+      quantity: quantity,
+      unit: 'g',
+      nutrients: {
+        per100g,
+        total
+      }
+    });
+  };
+
+  // 数量が変更された時の処理
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const newQuantity = Number(e.target.value);
+    if (isNaN(newQuantity)) return;
+
+    const currentItems = getValues('items');
+    const item = currentItems[index];
+    
+    if (item?.nutrients?.per100g) {
+      const { per100g } = item.nutrients;
+      const total = {
+        kcal: (per100g.kcal * newQuantity) / 100,
+        protein: (per100g.protein * newQuantity) / 100,
+        fat: (per100g.fat * newQuantity) / 100,
+        carbs: (per100g.carbs * newQuantity) / 100
+      };
+
+      const updatedItem = {
+        ...item,
+        quantity: newQuantity,
+        nutrients: {
+          per100g,
+          total
+        }
+      };
+
+      // 更新されたアイテムを含む新しい配列を作成
+      const updatedItems = [...currentItems];
+      updatedItems[index] = updatedItem;
+
+      // フォームの値を更新
+      setValue('items', updatedItems);
     }
   };
 
-  const onSubmit = async (data: MealRecordSchema) => {
-    setIsSubmitting(true);
-    setError(null);
-
+  const onSubmit = async (data: MealRecord) => {
     try {
-      const formData = {
-        mealType: data.mealType,
-        date: initialData?.date || new Date().toISOString(),
-        items: data.foodItems.map(item => ({
-          name: item.name,
-          quantity: parseFloat(item.quantity),
-          unit: item.unit,
-        })),
-        photoUrl: photoPreview, // 写真アップロード機能実装後に更新
-      };
+      console.log('Submitting data:', data); // デバッグログを追加
 
-      const url = initialData
-        ? `/api/meals/${initialData.id}`
-        : '/api/meals';
+      // データを変換
+      const transformedItems = data.items.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        caloriesPerHundredGrams: item.nutrients?.per100g?.kcal || 0,
+        proteinPerHundredGrams: item.nutrients?.per100g?.protein || 0,
+        fatPerHundredGrams: item.nutrients?.per100g?.fat || 0,
+        carbsPerHundredGrams: item.nutrients?.per100g?.carbs || 0,
+        totalCalories: item.nutrients?.total?.kcal || 0,
+        totalProtein: item.nutrients?.total?.protein || 0,
+        totalFat: item.nutrients?.total?.fat || 0,
+        totalCarbs: item.nutrients?.total?.carbs || 0,
+      }));
 
-      const response = await fetch(url, {
+      console.log('Transformed items:', transformedItems); // デバッグログを追加
+
+      const response = await fetch(initialData ? `/api/meals/${initialData.id}` : '/api/meals', {
         method: initialData ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...data,
+          items: transformedItems,
+          date: new Date().toISOString(),
+        }),
       });
 
+      console.log('Response status:', response.status); // レスポンスステータスを出力
+
       if (!response.ok) {
-        throw new Error(initialData ? '食事記録の更新に失敗しました' : '食事記録の保存に失敗しました');
+        const errorText = await response.text(); // レスポンスの生テキストを取得
+        console.error('Server error - Status:', response.status);
+        console.error('Server error - Response:', errorText);
+        
+        let errorMessage = '保存に失敗しました';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.error('Error parsing error response:', e);
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      console.log('Saved data:', result);
+
+      if (!initialData) {
+        // 新規作成時のみフォームをリセット
+        reset({
+          mealType: 'breakfast',
+          items: [],
+          date: new Date().toISOString(),
+          photoUrl: null,
+        });
+        alert('食事記録を保存しました');
       }
 
       if (onSuccess) {
         onSuccess();
-      } else {
-        reset();
-        setPhotoPreview(null);
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error:', error);
+      alert(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
     }
   };
 
-  const selectedMealType = watch('mealType');
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {error}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          食事の種類
+        </label>
+        <select
+          {...register('mealType')}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+        >
+          <option value="breakfast">朝食</option>
+          <option value="lunch">昼食</option>
+          <option value="dinner">夕食</option>
+          <option value="snack">間食</option>
+        </select>
+        {errors.mealType && (
+          <p className="mt-1 text-sm text-red-600">{errors.mealType.message}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          食品を検索して追加
+        </label>
+        <FoodSearch onSelect={handleFoodSelect} />
+      </div>
+
+      {fields.length > 0 && (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              追加された食品
+            </label>
+            <div className="space-y-4">
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex flex-col gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1 min-w-0">
+                      <input
+                        type="text"
+                        {...register(`items.${index}.name` as const)}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-900"
+                      />
+                    </div>
+                    <div className="flex flex-row gap-4 sm:w-auto">
+                      <div className="w-24 sm:w-32">
+                        <input
+                          type="number"
+                          {...register(`items.${index}.quantity` as const, {
+                            valueAsNumber: true
+                          })}
+                          placeholder="量"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+                          onChange={(e) => handleQuantityChange(e, index)}
+                        />
+                        {errors.items?.[index]?.quantity && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.items[index]?.quantity?.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="w-20 sm:w-24">
+                        <select
+                          {...register(`items.${index}.unit` as const)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                        >
+                          <option value="g">g</option>
+                          <option value="ml">ml</option>
+                          <option value="個">個</option>
+                          <option value="杯">杯</option>
+                        </select>
+                        {errors.items?.[index]?.unit && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.items[index]?.unit?.message}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => remove(index)}
+                        className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600 w-full">
+                    {watchItems[index]?.nutrients && (
+                      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
+                        <div className="flex justify-between">
+                          <span>カロリー:</span>
+                          <span>{Math.round(watchItems[index].nutrients.total.kcal)}kcal</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>タンパク質:</span>
+                          <span>{Math.round(watchItems[index].nutrients.total.protein)}g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>脂質:</span>
+                          <span>{Math.round(watchItems[index].nutrients.total.fat)}g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>炭水化物:</span>
+                          <span>{Math.round(watchItems[index].nutrients.total.carbs)}g</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h3 className="text-lg font-medium text-blue-900 mb-2">合計栄養価</h3>
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-blue-800">
+              <div className="flex justify-between">
+                <span>カロリー:</span>
+                <span>{Math.round(totalNutrients.kcal)}kcal</span>
+              </div>
+              <div className="flex justify-between">
+                <span>タンパク質:</span>
+                <span>{Math.round(totalNutrients.protein)}g</span>
+              </div>
+              <div className="flex justify-between">
+                <span>脂質:</span>
+                <span>{Math.round(totalNutrients.fat)}g</span>
+              </div>
+              <div className="flex justify-between">
+                <span>炭水化物:</span>
+                <span>{Math.round(totalNutrients.carbs)}g</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* 食事タイプの選択 */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          食事タイプ
-        </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {MEAL_TYPES.map(({ id, label }) => (
-            <label
-              key={id}
-              className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                ${selectedMealType === id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              <input
-                type="radio"
-                {...register('mealType')}
-                value={id}
-                className="sr-only"
-              />
-              {label}
-            </label>
-          ))}
-        </div>
-        {errors.mealType && (
-          <p className="text-sm text-red-600 mt-1">{errors.mealType.message}</p>
-        )}
-      </div>
-
-      {/* 写真アップロード */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          写真
-        </label>
-        <div className="flex items-center justify-center w-full">
-          <label className="relative flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              {photoPreview ? (
-                <img
-                  src={photoPreview}
-                  alt="Preview"
-                  className="w-full h-full object-cover rounded-lg"
-                />
-              ) : (
-                <>
-                  <CameraIcon className="w-12 h-12 text-gray-400 mb-4" />
-                  <p className="text-sm text-gray-600">
-                    クリックして写真をアップロード
-                  </p>
-                </>
-              )}
-            </div>
-            <input
-              type="file"
-              className="hidden"
-              accept="image/*"
-              onChange={handlePhotoChange}
-            />
-          </label>
-        </div>
-      </div>
-
-      {/* 食品リスト */}
-      <div className="space-y-4">
-        <label className="block text-sm font-medium text-gray-700">
-          食品リスト
-        </label>
-        {fields.map((field, index) => (
-          <div key={field.id} className="flex gap-2">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="食品名"
-                {...register(`foodItems.${index}.name`)}
-                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
-              />
-              {errors.foodItems?.[index]?.name && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.foodItems[index]?.name?.message}
-                </p>
-              )}
-            </div>
-            <div className="w-20">
-              <input
-                type="text"
-                placeholder="量"
-                {...register(`foodItems.${index}.quantity`)}
-                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
-              />
-              {errors.foodItems?.[index]?.quantity && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.foodItems[index]?.quantity?.message}
-                </p>
-              )}
-            </div>
-            <div className="w-20">
-              <select
-                {...register(`foodItems.${index}.unit`)}
-                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 bg-white"
-              >
-                <option value="g">g</option>
-                <option value="ml">ml</option>
-                <option value="個">個</option>
-                <option value="杯">杯</option>
-              </select>
-              {errors.foodItems?.[index]?.unit && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.foodItems[index]?.unit?.message}
-                </p>
-              )}
-            </div>
-            {fields.length > 1 && (
-              <button
-                type="button"
-                onClick={() => remove(index)}
-                className="p-2 text-red-600 hover:text-red-700"
-              >
-                ×
-              </button>
-            )}
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => append({ name: '', quantity: '', unit: 'g' })}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
-        >
-          <PlusIcon className="w-5 h-5" />
-          <span>食品を追加</span>
-        </button>
-        {errors.foodItems && !Array.isArray(errors.foodItems) && (
-          <p className="text-sm text-red-600 mt-1">{errors.foodItems.message}</p>
-        )}
-      </div>
-
-      {/* 送信ボタン */}
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={isSubmitting}
-          className={`px-6 py-2 rounded-lg transition-colors ${
-            isSubmitting
-              ? 'bg-blue-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
-          } text-white`}
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          {isSubmitting
-            ? (initialData ? '更新中...' : '保存中...')
-            : (initialData ? '更新する' : '記録を保存')}
+          保存
         </button>
       </div>
     </form>

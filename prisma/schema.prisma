@@ -24,14 +24,18 @@ model MealRecord {
 }
 
 model FoodItem {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  name         String
-  quantity     Float
-  unit         String
-  calories     Float?
-  protein      Float?
-  fat          Float?
-  carbohydrate Float?
-  mealRecord   MealRecord @relation(fields: [mealRecordId], references: [id], onDelete: Cascade)
-  mealRecordId String     @db.ObjectId
+  id                     String     @id @default(auto()) @map("_id") @db.ObjectId
+  name                   String
+  quantity               Float
+  unit                   String
+  caloriesPerHundredGrams Float?
+  proteinPerHundredGrams  Float?
+  fatPerHundredGrams      Float?
+  carbsPerHundredGrams    Float?
+  totalCalories          Float?
+  totalProtein           Float?
+  totalFat               Float?
+  totalCarbs             Float?
+  mealRecord             MealRecord @relation(fields: [mealRecordId], references: [id], onDelete: Cascade)
+  mealRecordId           String     @db.ObjectId
 }

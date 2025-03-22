@@ -5,31 +5,11 @@ import { useRouter } from 'next/navigation';
 import { MealRecordForm } from '@/app/components/MealRecordForm';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import type { EditMealRecordPageProps, DatabaseMealRecord } from '@/types/meal';
 
-interface FoodItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: 'g' | 'ml' | '個' | '杯';
-}
-
-interface MealRecord {
-  id: string;
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  date: string;
-  photoUrl: string | null;
-  items: FoodItem[];
-}
-
-interface Props {
-  params: Promise<{
-    id: string;
-  }>;
-}
-
-export default function EditMealRecord({ params }: Props) {
+export default function EditMealRecord({ params }: EditMealRecordPageProps) {
   const router = useRouter();
-  const [meal, setMeal] = useState<MealRecord | null>(null);
+  const [meal, setMeal] = useState<DatabaseMealRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const resolvedParams = use(params);

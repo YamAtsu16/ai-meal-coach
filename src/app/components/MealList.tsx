@@ -6,32 +6,13 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Pagination } from './Pagination';
-
-interface FoodItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: 'g' | 'ml' | '個' | '杯';
-}
-
-interface MealRecord {
-  id: string;
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  date: string;
-  photoUrl: string | null;
-  items: FoodItem[];
-}
-
-interface MealListProps {
-  meals: MealRecord[];
-  onDelete: (id: string) => void;
-}
+import type { MealListProps } from '@/types/meal';
 
 const MEAL_TYPE_LABELS = {
   breakfast: '朝食',
   lunch: '昼食',
   dinner: '夕食',
-  snack: 'おやつ'
+  snack: '間食'
 } as const;
 
 const ITEMS_PER_PAGE = 5;

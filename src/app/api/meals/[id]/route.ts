@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-interface FoodItemInput {
-  name: string;
-  quantity: number;
-  unit: string;
-}
+import type { FoodItemInput } from '@/types/meal';
 
 // 食事記録の取得
 export async function GET(
@@ -69,6 +64,14 @@ export async function PUT(
             name: item.name,
             quantity: item.quantity,
             unit: item.unit,
+            caloriesPerHundredGrams: item.caloriesPerHundredGrams,
+            proteinPerHundredGrams: item.proteinPerHundredGrams,
+            fatPerHundredGrams: item.fatPerHundredGrams,
+            carbsPerHundredGrams: item.carbsPerHundredGrams,
+            totalCalories: item.totalCalories,
+            totalProtein: item.totalProtein,
+            totalFat: item.totalFat,
+            totalCarbs: item.totalCarbs,
           })),
         },
       },

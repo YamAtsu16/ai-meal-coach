@@ -5,21 +5,7 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-
-interface FoodItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string;
-}
-
-interface MealRecord {
-  id: string;
-  mealType: string;
-  date: string;
-  photoUrl: string | null;
-  items: FoodItem[];
-}
+import type { DatabaseMealRecord } from '@/types/meal';
 
 const MEAL_TYPE_LABELS: Record<string, string> = {
   breakfast: '朝食',
@@ -29,7 +15,7 @@ const MEAL_TYPE_LABELS: Record<string, string> = {
 };
 
 export function MealRecordList() {
-  const [meals, setMeals] = useState<MealRecord[]>([]);
+  const [meals, setMeals] = useState<DatabaseMealRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);

@@ -5,24 +5,10 @@ import { DashboardCharts } from './components/DashboardCharts';
 import { MealList } from './components/MealList';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-
-interface FoodItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: 'g' | 'ml' | '個' | '杯';
-}
-
-interface MealRecord {
-  id: string;
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  date: string;
-  photoUrl: string | null;
-  items: FoodItem[];
-}
+import type { DatabaseMealRecord } from '@/types/meal';
 
 export default function Home() {
-  const [meals, setMeals] = useState<MealRecord[]>([]);
+  const [meals, setMeals] = useState<DatabaseMealRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
