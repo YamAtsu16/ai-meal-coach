@@ -1,6 +1,8 @@
 import React from 'react';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 import { DashboardCharts } from './components/DashboardCharts';
+import { MealRecordList } from './components/MealRecordList';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -11,26 +13,33 @@ export default function Home() {
             ダッシュボード
           </h1>
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+            <Link
+              href="/record"
+              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            >
               <SparklesIcon className="w-5 h-5" />
               <span>食事を記録</span>
-            </button>
+            </Link>
           </div>
         </div>
         
-        <DashboardCharts />
-
-        {/* 最近の食事記録 */}
-        <div className="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">最近の食事記録</h2>
-            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-              すべて表示
-            </button>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <DashboardCharts />
           </div>
-          <div className="space-y-4">
-            {/* 後で実装：食事記録リスト */}
-            <p className="text-gray-600">食事記録を実装予定</p>
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-800">最近の食事記録</h2>
+                <Link
+                  href="/meals"
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  すべて表示
+                </Link>
+              </div>
+              <MealRecordList />
+            </div>
           </div>
         </div>
       </main>
