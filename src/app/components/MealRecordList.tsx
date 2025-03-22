@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
 interface FoodItem {
   id: string;
@@ -30,6 +32,8 @@ export function MealRecordList() {
   const [meals, setMeals] = useState<MealRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchMeals();
@@ -47,6 +51,32 @@ export function MealRecordList() {
       setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('この食事記録を削除してもよろしいですか？')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteTarget(id);
+
+    try {
+      const response = await fetch(`/api/meals/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('食事記録の削除に失敗しました');
+      }
+
+      setMeals(meals.filter(meal => meal.id !== id));
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -90,6 +120,25 @@ export function MealRecordList() {
                 <span className="ml-2 text-sm text-gray-600">
                   {format(new Date(meal.date), 'M月d日(E) HH:mm', { locale: ja })}
                 </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/meals/${meal.id}/edit`}
+                  className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors"
+                >
+                  <PencilIcon className="w-5 h-5" />
+                </Link>
+                <button
+                  onClick={() => handleDelete(meal.id)}
+                  disabled={isDeleting && deleteTarget === meal.id}
+                  className={`p-1.5 transition-colors ${
+                    isDeleting && deleteTarget === meal.id
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-gray-500 hover:text-red-600'
+                  }`}
+                >
+                  <TrashIcon className="w-5 h-5" />
+                </button>
               </div>
             </div>
 

@@ -1,48 +1,105 @@
-import React from 'react';
-import { SparklesIcon } from '@heroicons/react/24/outline';
+'use client';
+
+import { useEffect, useState } from 'react';
 import { DashboardCharts } from './components/DashboardCharts';
-import { MealRecordList } from './components/MealRecordList';
+import { MealList } from './components/MealList';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
+interface FoodItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: 'g' | 'ml' | '個' | '杯';
+}
+
+interface MealRecord {
+  id: string;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  date: string;
+  photoUrl: string | null;
+  items: FoodItem[];
+}
+
 export default function Home() {
+  const [meals, setMeals] = useState<MealRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchMeals = async () => {
+    try {
+      const response = await fetch('/api/meals');
+      if (!response.ok) {
+        throw new Error('食事記録の取得に失敗しました');
+      }
+      const data = await response.json();
+      setMeals(data);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMeals();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/meals/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('食事記録の削除に失敗しました');
+      }
+
+      // 削除成功後、一覧を更新
+      fetchMeals();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <main className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            ダッシュボード
-          </h1>
-          <div className="flex gap-4">
-            <Link
-              href="/record"
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              <SparklesIcon className="w-5 h-5" />
-              <span>食事を記録</span>
-            </Link>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900">ダッシュボード</h1>
+          <Link
+            href="/record"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <PlusIcon className="w-5 h-5 mr-2" />
+            食事を記録
+          </Link>
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+
+        {error && (
+          <div className="mb-8 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-8">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">栄養摂取状況</h2>
             <DashboardCharts />
           </div>
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-800">最近の食事記録</h2>
-                <Link
-                  href="/meals"
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                >
-                  すべて表示
-                </Link>
+
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">最近の食事記録</h2>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
-              <MealRecordList />
-            </div>
+            ) : (
+              <MealList meals={meals} onDelete={handleDelete} />
+            )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

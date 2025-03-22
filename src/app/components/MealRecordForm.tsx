@@ -6,6 +6,26 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CameraIcon, PlusIcon } from '@heroicons/react/24/outline';
 
+interface FoodItem {
+  id?: string;
+  name: string;
+  quantity: number;
+  unit: 'g' | 'ml' | '個' | '杯';
+}
+
+interface MealRecord {
+  id: string;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  date: string;
+  photoUrl: string | null;
+  items: FoodItem[];
+}
+
+interface Props {
+  initialData?: MealRecord;
+  onSuccess?: () => void;
+}
+
 const MEAL_TYPES = [
   { id: 'breakfast', label: '朝食' },
   { id: 'lunch', label: '昼食' },
@@ -31,12 +51,10 @@ const mealRecordSchema = z.object({
 
 type MealRecordSchema = z.infer<typeof mealRecordSchema>;
 
-export function MealRecordForm() {
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+export function MealRecordForm({ initialData, onSuccess }: Props) {
+  const [photoPreview, setPhotoPreview] = useState<string | null>(initialData?.photoUrl || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
@@ -47,10 +65,19 @@ export function MealRecordForm() {
     reset,
   } = useForm<MealRecordSchema>({
     resolver: zodResolver(mealRecordSchema),
-    defaultValues: {
-      mealType: undefined,
-      foodItems: [{ name: '', quantity: '', unit: 'g' }],
-    },
+    defaultValues: initialData
+      ? {
+          mealType: initialData.mealType,
+          foodItems: initialData.items.map(item => ({
+            name: item.name,
+            quantity: String(item.quantity),
+            unit: item.unit,
+          })),
+        }
+      : {
+          mealType: undefined,
+          foodItems: [{ name: '', quantity: '', unit: 'g' }],
+        },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -61,31 +88,32 @@ export function MealRecordForm() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setPhoto(file);
       setPhotoPreview(URL.createObjectURL(file));
     }
   };
 
   const onSubmit = async (data: MealRecordSchema) => {
     setIsSubmitting(true);
-    setSubmitError(null);
-    setSubmitSuccess(false);
+    setError(null);
 
     try {
-      // 写真のアップロード処理は後で実装
       const formData = {
         mealType: data.mealType,
-        date: new Date().toISOString(),
+        date: initialData?.date || new Date().toISOString(),
         items: data.foodItems.map(item => ({
           name: item.name,
           quantity: parseFloat(item.quantity),
           unit: item.unit,
         })),
-        photoUrl: null, // 写真アップロード機能実装後に更新
+        photoUrl: photoPreview, // 写真アップロード機能実装後に更新
       };
 
-      const response = await fetch('/api/meals', {
-        method: 'POST',
+      const url = initialData
+        ? `/api/meals/${initialData.id}`
+        : '/api/meals';
+
+      const response = await fetch(url, {
+        method: initialData ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -93,15 +121,17 @@ export function MealRecordForm() {
       });
 
       if (!response.ok) {
-        throw new Error('食事記録の保存に失敗しました');
+        throw new Error(initialData ? '食事記録の更新に失敗しました' : '食事記録の保存に失敗しました');
       }
 
-      setSubmitSuccess(true);
-      reset(); // フォームをリセット
-      setPhoto(null);
-      setPhotoPreview(null);
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        reset();
+        setPhotoPreview(null);
+      }
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
     } finally {
       setIsSubmitting(false);
     }
@@ -111,15 +141,9 @@ export function MealRecordForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {submitError && (
+      {error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {submitError}
-        </div>
-      )}
-
-      {submitSuccess && (
-        <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg">
-          食事記録を保存しました
+          {error}
         </div>
       )}
 
@@ -198,7 +222,7 @@ export function MealRecordForm() {
                 type="text"
                 placeholder="食品名"
                 {...register(`foodItems.${index}.name`)}
-                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               />
               {errors.foodItems?.[index]?.name && (
                 <p className="text-sm text-red-600 mt-1">
@@ -211,7 +235,7 @@ export function MealRecordForm() {
                 type="text"
                 placeholder="量"
                 {...register(`foodItems.${index}.quantity`)}
-                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               />
               {errors.foodItems?.[index]?.quantity && (
                 <p className="text-sm text-red-600 mt-1">
@@ -222,7 +246,7 @@ export function MealRecordForm() {
             <div className="w-20">
               <select
                 {...register(`foodItems.${index}.unit`)}
-                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 bg-white"
               >
                 <option value="g">g</option>
                 <option value="ml">ml</option>
@@ -270,7 +294,9 @@ export function MealRecordForm() {
               : 'bg-blue-600 hover:bg-blue-700'
           } text-white`}
         >
-          {isSubmitting ? '保存中...' : '記録を保存'}
+          {isSubmitting
+            ? (initialData ? '更新中...' : '保存中...')
+            : (initialData ? '更新する' : '記録を保存')}
         </button>
       </div>
     </form>

@@ -1,0 +1,109 @@
+'use client';
+
+import { useEffect, useState, use } from 'react';
+import { useRouter } from 'next/navigation';
+import { MealRecordForm } from '@/app/components/MealRecordForm';
+import Link from 'next/link';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+
+interface FoodItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: 'g' | 'ml' | '個' | '杯';
+}
+
+interface MealRecord {
+  id: string;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  date: string;
+  photoUrl: string | null;
+  items: FoodItem[];
+}
+
+interface Props {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default function EditMealRecord({ params }: Props) {
+  const router = useRouter();
+  const [meal, setMeal] = useState<MealRecord | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const resolvedParams = use(params);
+
+  useEffect(() => {
+    const fetchMeal = async () => {
+      try {
+        const response = await fetch(`/api/meals/${resolvedParams.id}`);
+        if (!response.ok) {
+          throw new Error('食事記録の取得に失敗しました');
+        }
+        const data = await response.json();
+        setMeal(data);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMeal();
+  }, [resolvedParams.id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="inline-flex items-center text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeftIcon className="w-5 h-5 mr-2" />
+              戻る
+            </Link>
+            <h1 className="text-2xl font-bold text-gray-900">食事記録の編集</h1>
+          </div>
+        </div>
+
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            {meal && (
+              <MealRecordForm
+                initialData={meal}
+                onSuccess={() => router.push('/')}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+} 
