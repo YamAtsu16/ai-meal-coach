@@ -34,6 +34,9 @@ type MealRecordSchema = z.infer<typeof mealRecordSchema>;
 export function MealRecordForm() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const {
     register,
@@ -41,6 +44,7 @@ export function MealRecordForm() {
     handleSubmit,
     formState: { errors },
     watch,
+    reset,
   } = useForm<MealRecordSchema>({
     resolver: zodResolver(mealRecordSchema),
     defaultValues: {
@@ -63,14 +67,62 @@ export function MealRecordForm() {
   };
 
   const onSubmit = async (data: MealRecordSchema) => {
-    // TODO: APIとの連携を実装
-    console.log({ ...data, photo });
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(false);
+
+    try {
+      // 写真のアップロード処理は後で実装
+      const formData = {
+        mealType: data.mealType,
+        date: new Date().toISOString(),
+        items: data.foodItems.map(item => ({
+          name: item.name,
+          quantity: parseFloat(item.quantity),
+          unit: item.unit,
+        })),
+        photoUrl: null, // 写真アップロード機能実装後に更新
+      };
+
+      const response = await fetch('/api/meals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('食事記録の保存に失敗しました');
+      }
+
+      setSubmitSuccess(true);
+      reset(); // フォームをリセット
+      setPhoto(null);
+      setPhotoPreview(null);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const selectedMealType = watch('mealType');
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {submitError && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+          {submitError}
+        </div>
+      )}
+
+      {submitSuccess && (
+        <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg">
+          食事記録を保存しました
+        </div>
+      )}
+
       {/* 食事タイプの選択 */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">
@@ -211,9 +263,14 @@ export function MealRecordForm() {
       <div className="flex justify-end">
         <button
           type="submit"
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          disabled={isSubmitting}
+          className={`px-6 py-2 rounded-lg transition-colors ${
+            isSubmitting
+              ? 'bg-blue-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          } text-white`}
         >
-          記録を保存
+          {isSubmitting ? '保存中...' : '記録を保存'}
         </button>
       </div>
     </form>
