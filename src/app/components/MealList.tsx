@@ -60,15 +60,15 @@ export function MealList({ meals, onDelete }: MealListProps) {
               key={meal.id}
               className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden"
             >
-              <div className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="inline-block px-2 py-1 text-sm rounded-full bg-blue-100 text-blue-800 mr-2">
+              <div className="p-4 space-y-2 xs:space-y-0">
+                <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between">
+                  <div className="flex items-center gap-2 flex-wrap xs:flex-nowrap">
+                    <span className="inline-block px-2 py-1 text-sm rounded-full bg-blue-100 text-blue-800 shrink-0">
                       {MEAL_TYPE_LABELS[meal.mealType]}
                     </span>
-                    <span className="text-gray-600">{formatDate(meal.date)}</span>
+                    <span className="text-gray-600 whitespace-nowrap">{formatDate(meal.date)}</span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-end space-x-2 mt-2 xs:mt-0">
                     <Link
                       href={`/meals/${meal.id}/edit`}
                       className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
