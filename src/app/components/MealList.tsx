@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Pagination } from './Pagination';
-import type { MealListProps } from '@/types/meal';
+import type { MealListProps } from '@/types';
 
 const MEAL_TYPE_LABELS = {
   breakfast: '朝食',

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { MealRecordForm } from '@/app/components/MealRecordForm';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import type { EditMealRecordPageProps, DatabaseMealRecord } from '@/types/meal';
+import type { EditMealRecordPageProps, DatabaseMealRecord } from '@/types';
 
 export default function EditMealRecord({ params }: EditMealRecordPageProps) {
   const router = useRouter();

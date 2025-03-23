@@ -12,7 +12,7 @@ import {
   type FoodSearchResult,
   type DatabaseFoodItem,
   type MealRecordFormProps
-} from '@/types/meal';
+} from '@/types';
 
 export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) {
   console.log('Initial data:', initialData); // デバッグ用

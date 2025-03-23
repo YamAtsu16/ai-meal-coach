@@ -5,7 +5,7 @@ import { DashboardCharts } from './components/DashboardCharts';
 import { MealList } from './components/MealList';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import type { DatabaseMealRecord } from '@/types/meal';
+import type { DatabaseMealRecord } from '@/types';
 
 export default function Home() {
   const [meals, setMeals] = useState<DatabaseMealRecord[]>([]);

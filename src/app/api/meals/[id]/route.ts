@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import type { FoodItemInput } from '@/types/meal';
+import type { FoodItemInput } from '@/types';
 
 // 食事記録の取得
 export async function GET(
