@@ -15,8 +15,6 @@ import {
 } from '@/types';
 
 export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) {
-  console.log('Initial data:', initialData); // デバッグ用
-
   const {
     register,
     control,
@@ -33,7 +31,6 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
       date: initialData.date,
       photoUrl: initialData.photoUrl,
       items: initialData.items.map((item: DatabaseFoodItem) => {
-        console.log('Processing item:', item); // デバッグ用
         return {
           name: item.name,
           quantity: item.quantity,
@@ -150,8 +147,6 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
 
   const onSubmit = async (data: MealRecord) => {
     try {
-      console.log('Submitting data:', data); // デバッグログを追加
-
       // データを変換
       const transformedItems = data.items.map(item => ({
         name: item.name,
@@ -167,8 +162,6 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
         totalCarbs: item.nutrients?.total?.carbs || 0,
       }));
 
-      console.log('Transformed items:', transformedItems); // デバッグログを追加
-
       const response = await fetch(initialData ? `/api/meals/${initialData.id}` : '/api/meals', {
         method: initialData ? 'PUT' : 'POST',
         headers: {
@@ -180,8 +173,6 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
           date: new Date().toISOString(),
         }),
       });
-
-      console.log('Response status:', response.status); // レスポンスステータスを出力
 
       if (!response.ok) {
         const errorText = await response.text(); // レスポンスの生テキストを取得
@@ -198,9 +189,6 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
         
         throw new Error(errorMessage);
       }
-
-      const result = await response.json();
-      console.log('Saved data:', result);
 
       if (!initialData) {
         // 新規作成時のみフォームをリセット
