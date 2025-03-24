@@ -150,8 +150,6 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('query');
 
-  console.log('Original query:', query);
-
   if (!query) {
     return NextResponse.json({ error: '検索キーワードを入力してください' }, { status: 400 });
   }
@@ -166,20 +164,14 @@ export async function GET(request: Request) {
 
   try {
     const translatedQuery = translateToEnglish(query);
-    console.log('Translated query:', translatedQuery);
-
     const apiUrl = `${EDAMAM_API_URL}?app_id=${EDAMAM_APP_ID}&app_key=${EDAMAM_APP_KEY}&ingr=${encodeURIComponent(translatedQuery)}`;
-    console.log('API URL:', apiUrl);
-    
     const response = await fetch(apiUrl);
-    console.log('API Response status:', response.status);
-    
+
     if (!response.ok) {
       throw new Error(`APIリクエストに失敗しました: ${response.status}`);
     }
 
     const data: EdamamResponse = await response.json();
-    console.log('API Response:', JSON.stringify(data, null, 2));
     
     const foods = data.hints.map(hint => ({
       foodId: hint.food.foodId,
@@ -192,7 +184,6 @@ export async function GET(request: Request) {
       }
     }));
 
-    console.log('Processed foods:', JSON.stringify(foods, null, 2));
     return NextResponse.json(foods);
   } catch (error) {
     console.error('Food search error:', error);
