@@ -123,13 +123,11 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
   };
 
   // 数量が変更された時の処理
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const newQuantity = Number(e.target.value);
+  const handleQuantityChange = (index: number, value: string) => {
+    const newQuantity = Number(value);
     if (isNaN(newQuantity)) return;
 
-    const currentItems = getValues('items');
-    const item = currentItems[index];
-    
+    const item = getValues(`items.${index}`);
     if (item?.nutrients?.per100g) {
       const { per100g } = item.nutrients;
       const total = {
@@ -139,22 +137,15 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
         carbs: (per100g.carbs * newQuantity) / 100
       };
 
-      const updatedItem = {
-        ...item,
-        quantity: newQuantity,
-        nutrients: {
-          per100g,
-          total
-        }
-      };
-
-      // 更新されたアイテムを含む新しい配列を作成
-      const updatedItems = [...currentItems];
-      updatedItems[index] = updatedItem;
-
-      // フォームの値を更新
-      setValue('items', updatedItems);
+      setValue(`items.${index}.quantity`, newQuantity, { shouldDirty: true });
+      setValue(`items.${index}.nutrients.total`, total, { shouldDirty: true });
     }
+  };
+
+  // 数量入力欄からフォーカスが外れた時の処理
+  const handleQuantityBlur = () => {
+    const items = getValues('items');
+    setTotalNutrients(calculateTotalNutrients(items));
   };
 
   const onSubmit = async (data: MealRecord) => {
@@ -281,11 +272,12 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
                         <input
                           type="number"
                           {...register(`items.${index}.quantity` as const, {
-                            valueAsNumber: true
+                            valueAsNumber: true,
+                            onChange: (e) => handleQuantityChange(index, e.target.value),
+                            onBlur: () => handleQuantityBlur()
                           })}
                           placeholder="量"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
-                          onChange={(e) => handleQuantityChange(e, index)}
                         />
                         {errors.items?.[index]?.quantity && (
                           <p className="mt-1 text-sm text-red-600">
