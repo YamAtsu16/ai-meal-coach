@@ -1,32 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ArrowPathIcon, LightBulbIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 interface NutritionAdviceProps {
   selectedDate: string;
 }
 
 export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) {
-  const [analysisType, setAnalysisType] = useState<'daily' | 'weekly'>('daily');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [showAPIKeyWarning, setShowAPIKeyWarning] = useState(false);
 
-  // 分析タイプが変更された時にリセット
+  // 選択された日付が変更された時にリセット
   useEffect(() => {
     setAnalysisResult(null);
     setError(null);
-  }, [analysisType]);
-
-  // 選択された日付が変更された時にリセット
-  useEffect(() => {
-    if (analysisType === 'daily') {
-      setAnalysisResult(null);
-      setError(null);
-    }
-  }, [selectedDate, analysisType]);
+  }, [selectedDate]);
 
   const handleStartAnalysis = async () => {
     try {
@@ -41,7 +32,7 @@ export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) 
         },
         body: JSON.stringify({
           date: selectedDate,
-          analysisType,
+          analysisType: 'daily',
         }),
       });
 
@@ -78,41 +69,6 @@ export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) 
         <h2 className="text-xl font-semibold text-gray-800">
           AIによる栄養アドバイス
         </h2>
-      </div>
-
-      {/* 分析タイプ選択 */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-3">
-          <LightBulbIcon className="w-5 h-5 text-yellow-500" />
-          <h3 className="text-lg font-medium text-gray-800">分析タイプを選択</h3>
-        </div>
-        <div className="flex gap-4">
-          <button
-            className={`px-4 py-2 rounded-md ${
-              analysisType === 'daily'
-                ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-            onClick={() => setAnalysisType('daily')}
-          >
-            日次分析
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              analysisType === 'weekly'
-                ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-            onClick={() => setAnalysisType('weekly')}
-          >
-            週間分析
-          </button>
-        </div>
-        <p className="mt-2 text-sm text-gray-500">
-          {analysisType === 'daily'
-            ? '選択した日付の食事を詳細に分析します'
-            : '過去7日間の食事パターンを分析します'}
-        </p>
       </div>
 
       {/* 分析開始ボタン */}

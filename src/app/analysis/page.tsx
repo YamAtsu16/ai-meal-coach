@@ -26,9 +26,6 @@ export default function AnalysisPage() {
     <main className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">栄養分析</h1>
-        <p className="text-gray-600">
-          AIを活用して食事記録の分析と栄養アドバイスを取得できます
-        </p>
       </div>
 
       {/* 日付選択 */}
