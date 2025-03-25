@@ -1,7 +1,7 @@
 'use client';
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { FireIcon, ChartBarIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { FireIcon, ChartBarIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 import type { DatabaseMealRecord } from '@/types';
 
@@ -144,14 +144,13 @@ export function DashboardCharts() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <CalendarIcon className="h-5 w-5 text-gray-700" />
           <input
             type="date"
             value={selectedDate}
             onChange={handleDateChange}
             min={getMinDate()}
             max={getMaxDate()}
-            className="border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-800 font-medium text-sm"
+            className="border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-800 font-medium text-sm min-w-[150px]"
           />
         </div>
         <button
