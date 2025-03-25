@@ -1,9 +1,10 @@
 'use client';
 
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { FireIcon, ChartBarIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import { FireIcon, ChartBarIcon, ClockIcon, FlagIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 import type { DatabaseMealRecord } from '@/types';
+import type { UserProfileFormData } from '@/types/user'; 
 
 const MEAL_TYPE_LABELS = {
   breakfast: '朝食',
@@ -17,7 +18,9 @@ export function DashboardCharts() {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfileFormData | null>(null);
 
+  // 食事データの取得
   const fetchMeals = async () => {
     try {
       setIsLoading(true);
@@ -34,9 +37,27 @@ export function DashboardCharts() {
     }
   };
 
+  // ユーザープロフィールの取得
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/profile');
+      if (!response.ok) {
+        console.error('プロフィールの取得に失敗しました');
+        return;
+      }
+      const result = await response.json();
+      if (result.success && result.data) {
+        setUserProfile(result.data);
+      }
+    } catch (error) {
+      console.error('プロフィールの取得エラー:', error);
+    }
+  };
+
   // 初回ロード時にデータを取得
   useEffect(() => {
     fetchMeals();
+    fetchUserProfile();
   }, []);
 
   // 定期的にデータを更新 (30秒ごと)
@@ -61,12 +82,12 @@ export function DashboardCharts() {
 
   // 選択された日付の総栄養価を計算
   const totalNutrition = selectedDateMeals.reduce((acc, meal) => {
-    const mealTotal = meal.items.reduce((itemAcc, item) => ({
+    const mealTotal = meal.items?.reduce((itemAcc, item) => ({
       kcal: itemAcc.kcal + (item.totalCalories || 0),
       protein: itemAcc.protein + (item.totalProtein || 0),
       fat: itemAcc.fat + (item.totalFat || 0),
       carbs: itemAcc.carbs + (item.totalCarbs || 0),
-    }), { kcal: 0, protein: 0, fat: 0, carbs: 0 });
+    }), { kcal: 0, protein: 0, fat: 0, carbs: 0 }) || { kcal: 0, protein: 0, fat: 0, carbs: 0 };
 
     return {
       kcal: acc.kcal + mealTotal.kcal,
@@ -83,6 +104,30 @@ export function DashboardCharts() {
     { name: '炭水化物', value: totalNutrition.carbs * 4, color: '#10B981' },
   ];
 
+  // 目標との比較データ
+  const targetComparisonData = [
+    { 
+      name: 'カロリー',
+      現在: Math.round(totalNutrition.kcal),
+      目標: userProfile?.targetCalories || 0
+    },
+    { 
+      name: 'タンパク質',
+      現在: Math.round(totalNutrition.protein),
+      目標: userProfile?.targetProtein || 0
+    },
+    { 
+      name: '脂質',
+      現在: Math.round(totalNutrition.fat),
+      目標: userProfile?.targetFat || 0
+    },
+    { 
+      name: '炭水化物',
+      現在: Math.round(totalNutrition.carbs),
+      目標: userProfile?.targetCarbs || 0
+    },
+  ];
+
   // 総カロリーが0の場合、円グラフの表示を調整
   const pieData = totalNutrition.kcal > 0 
     ? nutritionData 
@@ -90,6 +135,7 @@ export function DashboardCharts() {
 
   const handleRefresh = () => {
     fetchMeals();
+    fetchUserProfile();
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,6 +186,14 @@ export function DashboardCharts() {
     );
   }
 
+  // 目標が設定されているかどうかを確認
+  const hasTargets = Boolean(
+    userProfile?.targetCalories || 
+    userProfile?.targetProtein || 
+    userProfile?.targetFat || 
+    userProfile?.targetCarbs
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -176,6 +230,11 @@ export function DashboardCharts() {
               {Math.round(totalNutrition.kcal)}
             </span>
             <span className="text-gray-600">kcal</span>
+            {userProfile?.targetCalories && (
+              <span className="text-gray-500 ml-2">
+                / 目標 {userProfile.targetCalories}kcal ({Math.round((totalNutrition.kcal / userProfile.targetCalories) * 100) || 0}%)
+              </span>
+            )}
           </div>
         </div>
 
@@ -242,6 +301,46 @@ export function DashboardCharts() {
         </div>
       </div>
 
+      {/* 目標との比較 */}
+      {hasTargets && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3 mb-6">
+            <FlagIcon className="w-6 h-6 text-purple-500" />
+            <h2 className="text-xl font-semibold text-gray-800">
+              目標との比較
+            </h2>
+          </div>
+          
+          {targetComparisonData.some(item => item.目標 > 0) ? (
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={targetComparisonData.filter(item => item.目標 > 0)}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="現在" fill="#3B82F6" />
+                  <Bar dataKey="目標" fill="#10B981" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="flex justify-center items-center h-[200px] text-gray-500">
+              <div className="text-center">
+                <p>目標が設定されていません</p>
+                <a href="/profile" className="text-blue-500 hover:underline mt-2 inline-block">
+                  プロフィールページで目標を設定する
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* その日の食事記録 */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-3 mb-6">
@@ -271,7 +370,7 @@ export function DashboardCharts() {
                     {mealsOfType.map(meal => (
                       <div key={meal.id} className="bg-gray-50 rounded-lg p-4">
                         <div className="grid grid-cols-1 gap-2">
-                          {meal.items.map(item => (
+                          {meal.items?.map(item => (
                             <div key={item.id} className="flex justify-between">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-gray-800">{item.name}</span>
