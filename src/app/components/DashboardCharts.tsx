@@ -105,12 +105,15 @@ export function DashboardCharts() {
   ];
 
   // 目標との比較データ
-  const targetComparisonData = [
+  const calorieComparisonData = [
     { 
       name: 'カロリー',
       現在: Math.round(totalNutrition.kcal),
       目標: userProfile?.targetCalories || 0
-    },
+    }
+  ];
+
+  const nutrientComparisonData = [
     { 
       name: 'タンパク質',
       現在: Math.round(totalNutrition.protein),
@@ -125,7 +128,7 @@ export function DashboardCharts() {
       name: '炭水化物',
       現在: Math.round(totalNutrition.carbs),
       目標: userProfile?.targetCarbs || 0
-    },
+    }
   ];
 
   // 総カロリーが0の場合、円グラフの表示を調整
@@ -220,7 +223,7 @@ export function DashboardCharts() {
         {/* 総摂取カロリー */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-4">
-            <FireIcon className="w-6 h-6 text-orange-500" />
+            <FireIcon className="w-6 h-6 text-blue-500" />
             <h2 className="text-xl font-semibold text-gray-800">
               {selectedDate === new Date().toISOString().split('T')[0] ? '今日' : selectedDate.replace(/-/g, '/')}の総摂取カロリー
             </h2>
@@ -305,28 +308,59 @@ export function DashboardCharts() {
       {hasTargets && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-6">
-            <FlagIcon className="w-6 h-6 text-purple-500" />
+            <FlagIcon className="w-6 h-6 text-blue-500" />
             <h2 className="text-xl font-semibold text-gray-800">
               目標との比較
             </h2>
           </div>
           
-          {targetComparisonData.some(item => item.目標 > 0) ? (
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={targetComparisonData.filter(item => item.目標 > 0)}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="現在" fill="#3B82F6" />
-                  <Bar dataKey="目標" fill="#10B981" />
-                </BarChart>
-              </ResponsiveContainer>
+          {(userProfile?.targetCalories || userProfile?.targetProtein || userProfile?.targetFat || userProfile?.targetCarbs) ? (
+            <div className="space-y-8">
+              {/* カロリー比較グラフ */}
+              {userProfile?.targetCalories ? (
+                <div>
+                  <h3 className="text-lg font-medium text-gray-800 mb-3">カロリー</h3>
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={calorieComparisonData}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="現在" fill="#3B82F6" />
+                        <Bar dataKey="目標" fill="#10B981" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              ) : null}
+
+              {/* 栄養素比較グラフ */}
+              {(userProfile?.targetProtein || userProfile?.targetFat || userProfile?.targetCarbs) ? (
+                <div>
+                  <h3 className="text-lg font-medium text-gray-800 mb-3">栄養素</h3>
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={nutrientComparisonData.filter(item => item.目標 > 0)}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="現在" fill="#3B82F6" />
+                        <Bar dataKey="目標" fill="#10B981" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="flex justify-center items-center h-[200px] text-gray-500">
@@ -344,7 +378,7 @@ export function DashboardCharts() {
       {/* その日の食事記録 */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-3 mb-6">
-          <ClockIcon className="w-6 h-6 text-green-500" />
+          <ClockIcon className="w-6 h-6 text-blue-500" />
           <h2 className="text-xl font-semibold text-gray-800">
             {selectedDate === new Date().toISOString().split('T')[0] ? '今日' : selectedDate.replace(/-/g, '/')}の食事記録
           </h2>
