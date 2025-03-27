@@ -1,10 +1,11 @@
 'use client';
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-import { FireIcon, ChartBarIcon, ClockIcon, FlagIcon } from '@heroicons/react/24/outline';
+import { FireIcon, ChartBarIcon, ClockIcon, FlagIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 import type { DatabaseMealRecord } from '@/types';
 import type { UserProfileFormData } from '@/types/user'; 
+import Link from 'next/link';
 
 const MEAL_TYPE_LABELS = {
   breakfast: '朝食',
@@ -25,14 +26,30 @@ export function DashboardCharts() {
     try {
       setIsLoading(true);
       const response = await fetch('/api/meals', {
-        credentials: 'include', // Cookieを含める
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+
       if (!response.ok) {
         throw new Error('食事記録の取得に失敗しました');
       }
-      const meals: DatabaseMealRecord[] = await response.json();
-      setMeals(meals);
+
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error('食事記録のデータ形式が不正です');
+      }
+
+      // MongoDBの_idをidとしてマッピング
+      const mealsWithId = data.map(meal => ({
+        ...meal,
+        id: meal._id || meal.id
+      }));
+
+      setMeals(mealsWithId);
     } catch (error) {
+      console.error('食事記録の取得エラー:', error);
       setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
     } finally {
       setIsLoading(false);
@@ -55,6 +72,36 @@ export function DashboardCharts() {
       }
     } catch (error) {
       console.error('プロフィールの取得エラー:', error);
+    }
+  };
+
+  // 食事記録の削除ハンドラー
+  const handleDeleteMeal = async (mealId: string) => {
+    if (!confirm('この食事記録を削除してもよろしいですか？')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/meals/${mealId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('食事記録の削除に失敗しました');
+      }
+
+      // 削除成功後、食事記録を再取得
+      await fetchMeals();
+    } catch (error) {
+      console.error('食事記録の削除エラー:', error);
+      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -419,6 +466,20 @@ export function DashboardCharts() {
                               </div>
                             </div>
                           ))}
+                        </div>
+                        <div className="flex justify-end gap-2 mt-3">
+                          <Link 
+                            href={`/meals/${meal.id}/edit`}
+                            className="text-blue-600 hover:text-blue-800 p-1"
+                          >
+                            <PencilIcon className="w-5 h-5" />
+                          </Link>
+                          <button 
+                            onClick={() => handleDeleteMeal(meal.id)}
+                            className="text-red-600 hover:text-red-800 p-1"
+                          >
+                            <TrashIcon className="w-5 h-5" />
+                          </button>
                         </div>
                       </div>
                     ))}

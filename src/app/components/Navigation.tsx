@@ -19,7 +19,10 @@ export function Navigation() {
 
   // アクティブなリンクかどうかを判定
   const isActive = (path: string) => {
-    return pathname === path;
+    if (path === '/') {
+      return pathname === '/';
+    }
+    return pathname === path || pathname.startsWith(path + '/');
   };
 
   const handleLogout = async () => {
@@ -51,9 +54,9 @@ export function Navigation() {
                     <span className="mt-1 md:mt-0">ホーム</span>
                   </Link>
                   <Link
-                    href="/record"
+                    href="/meals/new"
                     className={`flex flex-col md:flex-row items-center px-1 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium ${
-                      isActive('/record')
+                      isActive('/meals/new')
                         ? 'text-blue-600'
                         : 'text-gray-500 hover:text-blue-600'
                     }`}

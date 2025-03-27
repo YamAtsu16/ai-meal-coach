@@ -17,22 +17,41 @@ export default function EditMealRecord({ params }: EditMealRecordPageProps) {
   useEffect(() => {
     const fetchMeal = async () => {
       try {
+        setIsLoading(true);
         const response = await fetch(`/api/meals/${resolvedParams.id}`, {
           credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
+
         if (!response.ok) {
           throw new Error('食事記録の取得に失敗しました');
         }
+
         const data = await response.json();
-        setMeal(data);
+        if (!data) {
+          throw new Error('食事記録が見つかりません');
+        }
+
+        // MongoDBの_idをidとしても設定
+        const mealWithId = {
+          ...data,
+          id: data._id || data.id // _idがある場合はそれを使用、なければ既存のidを使用
+        };
+
+        setMeal(mealWithId);
       } catch (error) {
+        console.error('食事記録の取得エラー:', error);
         setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchMeal();
+    if (resolvedParams.id) {
+      fetchMeal();
+    }
   }, [resolvedParams.id]);
 
   if (isLoading) {

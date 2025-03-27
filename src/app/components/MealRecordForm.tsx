@@ -26,6 +26,9 @@ interface MealRecordFormProps {
 }
 
 export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) {
+  const [isEditMode] = useState(Boolean(initialData?.id));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     register,
     control,
@@ -160,6 +163,8 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
 
   const onSubmit = async (data: MealRecord) => {
     try {
+      setIsSubmitting(true);
+      
       // データを変換
       const transformedItems = data.items.map(item => ({
         name: item.name,
@@ -175,8 +180,13 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
         totalCarbs: item.nutrients?.total?.carbs || 0,
       }));
 
-      const response = await fetch(initialData ? `/api/meals/${initialData.id}` : '/api/meals', {
-        method: initialData ? 'PUT' : 'POST',
+      const endpoint = isEditMode ? `/api/meals/${initialData!.id}` : '/api/meals';
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      console.log(`送信先: ${endpoint}, メソッド: ${method}`);
+      
+      const response = await fetch(endpoint, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -203,7 +213,7 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
         throw new Error(errorMessage);
       }
 
-      if (!initialData) {
+      if (!isEditMode) {
         // 新規作成時のみフォームをリセット
         reset({
           mealType: 'breakfast',
@@ -211,8 +221,10 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
           date: new Date().toISOString().split('T')[0],
           photoUrl: null,
         });
-        showToast('食事記録を保存しました', 'success');
       }
+      
+      const successMessage = isEditMode ? '食事記録を更新しました' : '食事記録を保存しました';
+      showToast(successMessage, 'success');
 
       if (onSuccess) {
         onSuccess();
@@ -220,6 +232,8 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
     } catch (error) {
       console.error('Error:', error);
       showToast(error instanceof Error ? error.message : '予期せぬエラーが発生しました', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -383,9 +397,12 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
         <div className="flex justify-end">
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            disabled={isSubmitting}
+            className={`px-6 py-2 bg-blue-600 text-white rounded-lg transition-colors ${
+              isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'
+            }`}
           >
-            保存
+            {isSubmitting ? '処理中...' : isEditMode ? '更新する' : '保存する'}
           </button>
         </div>
       </form>

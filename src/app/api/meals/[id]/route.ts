@@ -9,6 +9,15 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // パラメータのバリデーション
+    if (!params.id || params.id === 'undefined') {
+      console.error('Invalid meal ID for GET:', params.id);
+      return NextResponse.json(
+        { error: '無効な食事記録IDです' },
+        { status: 400 }
+      );
+    }
+
     // ユーザー情報を取得
     const token = await getToken({ req: request });
     if (!token || !token.id) {
@@ -18,8 +27,20 @@ export async function GET(
     const userId = token.id;
     const { db } = await connectToDatabase();
     
+    // IDが有効なObjectIdかチェック
+    let objectId;
+    try {
+      objectId = new ObjectId(params.id);
+    } catch (error) {
+      console.error('Invalid ObjectId format for GET:', params.id, error);
+      return NextResponse.json(
+        { error: '無効な食事記録IDです' },
+        { status: 400 }
+      );
+    }
+    
     const meal = await db.collection('meals').findOne({
-      _id: new ObjectId(params.id),
+      _id: objectId,
       userId: userId
     });
 
@@ -46,6 +67,15 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    // パラメータのバリデーション
+    if (!params.id || params.id === 'undefined') {
+      console.error('Invalid meal ID for PUT:', params.id);
+      return NextResponse.json(
+        { error: '無効な食事記録IDです' },
+        { status: 400 }
+      );
+    }
+
     // ユーザー情報を取得
     const token = await getToken({ req: request });
     if (!token || !token.id) {
@@ -58,10 +88,22 @@ export async function PUT(
 
     const { db } = await connectToDatabase();
     
+    // IDが有効なObjectIdかチェック
+    let objectId;
+    try {
+      objectId = new ObjectId(params.id);
+    } catch (error) {
+      console.error('Invalid ObjectId format for PUT:', params.id, error);
+      return NextResponse.json(
+        { error: '無効な食事記録IDです' },
+        { status: 400 }
+      );
+    }
+    
     // ユーザーIDが一致する食事記録のみ更新
     const result = await db.collection('meals').findOneAndUpdate(
       { 
-        _id: new ObjectId(params.id),
+        _id: objectId,
         userId: userId
       },
       {
@@ -99,6 +141,15 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    // パラメータのバリデーション
+    if (!params.id || params.id === 'undefined') {
+      console.error('Invalid meal ID:', params.id);
+      return NextResponse.json(
+        { error: '無効な食事記録IDです' },
+        { status: 400 }
+      );
+    }
+
     // ユーザー情報を取得
     const token = await getToken({ req: request });
     if (!token || !token.id) {
@@ -108,9 +159,21 @@ export async function DELETE(
     const userId = token.id;
     const { db } = await connectToDatabase();
 
+    // IDが有効なObjectIdかチェック
+    let objectId;
+    try {
+      objectId = new ObjectId(params.id);
+    } catch (error) {
+      console.error('Invalid ObjectId format:', params.id, error);
+      return NextResponse.json(
+        { error: '無効な食事記録IDです' },
+        { status: 400 }
+      );
+    }
+
     // ユーザーIDが一致する食事記録のみ削除
     const result = await db.collection('meals').deleteOne({
-      _id: new ObjectId(params.id),
+      _id: objectId,
       userId: userId
     });
 
