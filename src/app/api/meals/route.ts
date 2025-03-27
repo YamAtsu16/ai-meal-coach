@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+import { NextResponse, NextRequest } from 'next/server';
+import { connectToDatabase } from '@/lib/mongodb';
+import { getToken } from 'next-auth/jwt';
+import { ObjectId } from 'mongodb';
 
 interface FoodItemInput {
   name: string;
@@ -24,112 +25,102 @@ interface MealRecordInput {
 }
 
 // 食事記録の取得
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const meals = await prisma.mealRecord.findMany({
-      include: {
-        items: true,
-      },
-      orderBy: {
-        date: 'desc',
-      },
-    });
+    // ユーザー情報を取得
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    if (!token || !token.id) {
+      return NextResponse.json({ error: '認証エラー' }, { status: 401 });
+    }
+
+    const userId = token.id;
+    const { db } = await connectToDatabase();
+    
+    const meals = await db.collection('meals')
+      .find({ userId: userId })
+      .sort({ date: -1 })
+      .toArray();
+    
     return NextResponse.json(meals);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (error: unknown) {
+  } catch (error) {
+    console.error('Error fetching meals:', error);
     return NextResponse.json({ error: '食事記録の取得に失敗しました' }, { status: 500 });
   }
 }
 
 // 食事記録の作成
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // ユーザー情報を取得
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    if (!token || !token.id) {
+      return NextResponse.json({ error: '認証エラー' }, { status: 401 });
+    }
+
+    const userId = token.id;
     const body = await request.json();
     const { mealType, date, items, photoUrl } = body as MealRecordInput;
 
-    const meal = await prisma.mealRecord.create({
-      data: {
-        mealType,
-        date: new Date(date),
-        photoUrl,
-        items: {
-          create: items.map((item: FoodItemInput) => ({
-            name: item.name,
-            quantity: item.quantity,
-            unit: item.unit,
-            caloriesPerHundredGrams: item.caloriesPerHundredGrams,
-            proteinPerHundredGrams: item.proteinPerHundredGrams,
-            fatPerHundredGrams: item.fatPerHundredGrams,
-            carbsPerHundredGrams: item.carbsPerHundredGrams,
-            totalCalories: item.totalCalories,
-            totalProtein: item.totalProtein,
-            totalFat: item.totalFat,
-            totalCarbs: item.totalCarbs,
-          })),
-        },
-      },
-      include: {
-        items: true,
-      },
+    const { db } = await connectToDatabase();
+    
+    const result = await db.collection('meals').insertOne({
+      userId: userId,
+      mealType,
+      date: new Date(date),
+      photoUrl,
+      items,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
-    return NextResponse.json(meal);
+    const insertedMeal = await db.collection('meals').findOne({ _id: result.insertedId });
+    
+    return NextResponse.json(insertedMeal);
   } catch (error) {
-    let errorMessage = '保存に失敗しました';
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') {
-        errorMessage = 'データが重複しています';
-      } else if (error.code === 'P2000') {
-        errorMessage = '入力データが不正です';
-      }
-    }
-
+    console.error('Error creating meal:', error);
     return NextResponse.json(
-      { error: errorMessage },
+      { error: '保存に失敗しました' },
       { status: 500 }
     );
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
+    // ユーザー情報を取得
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    if (!token || !token.id) {
+      return NextResponse.json({ error: '認証エラー' }, { status: 401 });
+    }
+
+    const userId = token.id;
     const data = await request.json();
     const { id, mealType, date, items, photoUrl } = data;
 
-    // 既存の食事記録を更新
-    const updatedMeal = await prisma.mealRecord.update({
-      where: { id },
-      data: {
-        mealType,
-        date: new Date(date),
-        photoUrl,
-        items: {
-          // 既存のアイテムを削除
-          deleteMany: {},
-          // 新しいアイテムを作成
-          create: items.map((item: FoodItemInput) => ({
-            name: item.name,
-            quantity: item.quantity,
-            unit: item.unit,
-            caloriesPerHundredGrams: item.caloriesPerHundredGrams,
-            proteinPerHundredGrams: item.proteinPerHundredGrams,
-            fatPerHundredGrams: item.fatPerHundredGrams,
-            carbsPerHundredGrams: item.carbsPerHundredGrams,
-            totalCalories: item.totalCalories,
-            totalProtein: item.totalProtein,
-            totalFat: item.totalFat,
-            totalCarbs: item.totalCarbs,
-          })),
-        },
+    const { db } = await connectToDatabase();
+    
+    // ユーザーIDと一致する食事記録のみ更新
+    const result = await db.collection('meals').findOneAndUpdate(
+      { _id: new ObjectId(id), userId: userId },
+      {
+        $set: {
+          mealType,
+          date: new Date(date),
+          photoUrl,
+          items,
+          updatedAt: new Date(),
+        }
       },
-      include: {
-        items: true,
-      },
-    });
+      { returnDocument: 'after' }
+    );
 
-    return NextResponse.json(updatedMeal);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    if (!result) {
+      return NextResponse.json({ error: '食事記録が見つかりません' }, { status: 404 });
+    }
+
+    return NextResponse.json(result);
   } catch (error) {
+    console.error('Error updating meal:', error);
     return NextResponse.json(
       { error: '更新に失敗しました' },
       { status: 500 }

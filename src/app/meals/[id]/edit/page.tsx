@@ -17,7 +17,9 @@ export default function EditMealRecord({ params }: EditMealRecordPageProps) {
   useEffect(() => {
     const fetchMeal = async () => {
       try {
-        const response = await fetch(`/api/meals/${resolvedParams.id}`);
+        const response = await fetch(`/api/meals/${resolvedParams.id}`, {
+          credentials: 'include',
+        });
         if (!response.ok) {
           throw new Error('食事記録の取得に失敗しました');
         }

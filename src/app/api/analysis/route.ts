@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { analyzeMeals } from '@/lib/openai';
 import type { DatabaseMealRecord } from '@/types';
 import type { UserProfileFormData } from '@/types/user';
+import { getToken } from 'next-auth/jwt';
 
 /**
  * 食事分析を行うAPIエンドポイント
@@ -52,8 +53,24 @@ export async function POST(request: NextRequest) {
     const origin = request.headers.get('origin') || request.headers.get('host') || 'http://localhost:3000';
     const baseUrl = origin.startsWith('http') ? origin : `http://${origin}`;
 
-    // ユーザープロフィールの取得
-    const profileResponse = await fetch(`${baseUrl}/api/profile`);
+    // 認証トークン取得（next-auth/jwtを使用）
+    const token = await getToken({ req: request });
+    
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: '認証エラー' },
+        { status: 401 }
+      );
+    }
+
+    // ユーザープロフィールの取得（認証情報を含める）
+    const profileResponse = await fetch(new URL('/api/profile', baseUrl).toString(), {
+      headers: {
+        Cookie: request.headers.get('cookie') || '',
+        Authorization: `Bearer ${token.raw}`
+      }
+    });
+    
     let userProfile: UserProfileFormData | null = null;
     
     if (profileResponse.ok) {
@@ -63,8 +80,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 食事記録の取得
-    const mealsResponse = await fetch(`${baseUrl}/api/meals`);
+    // 食事記録の取得（認証情報を含める）
+    const mealsResponse = await fetch(new URL('/api/meals', baseUrl).toString(), {
+      headers: {
+        Cookie: request.headers.get('cookie') || '',
+        Authorization: `Bearer ${token.raw}`
+      }
+    });
+    
     let meals: DatabaseMealRecord[] = [];
     
     if (mealsResponse.ok) {

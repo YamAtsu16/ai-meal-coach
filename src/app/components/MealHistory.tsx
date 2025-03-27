@@ -17,7 +17,9 @@ export function MealHistory() {
   const fetchMeals = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/meals');
+      const response = await fetch('/api/meals', {
+        credentials: 'include', // Cookieを含める
+      });
       if (!response.ok) {
         throw new Error('食事記録の取得に失敗しました');
       }

@@ -24,7 +24,9 @@ export function DashboardCharts() {
   const fetchMeals = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/meals');
+      const response = await fetch('/api/meals', {
+        credentials: 'include', // Cookieを含める
+      });
       if (!response.ok) {
         throw new Error('食事記録の取得に失敗しました');
       }
@@ -40,7 +42,9 @@ export function DashboardCharts() {
   // ユーザープロフィールの取得
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch('/api/profile');
+      const response = await fetch('/api/profile', {
+        credentials: 'include', // Cookieを含める
+      });
       if (!response.ok) {
         console.error('プロフィールの取得に失敗しました');
         return;
@@ -404,8 +408,8 @@ export function DashboardCharts() {
                     {mealsOfType.map(meal => (
                       <div key={meal.id} className="bg-gray-50 rounded-lg p-4">
                         <div className="grid grid-cols-1 gap-2">
-                          {meal.items?.map(item => (
-                            <div key={item.id} className="flex justify-between">
+                          {meal.items?.map((item, itemIndex) => (
+                            <div key={`${meal.id}-item-${itemIndex}`} className="flex justify-between">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-gray-800">{item.name}</span>
                                 <span className="text-gray-600">{item.quantity}{item.unit}</span>

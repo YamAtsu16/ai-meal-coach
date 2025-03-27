@@ -27,7 +27,9 @@ export function MealRecordList() {
 
   const fetchMeals = async () => {
     try {
-      const response = await fetch('/api/meals');
+      const response = await fetch('/api/meals', {
+        credentials: 'include',
+      });
       if (!response.ok) {
         throw new Error('食事記録の取得に失敗しました');
       }
@@ -51,6 +53,7 @@ export function MealRecordList() {
     try {
       const response = await fetch(`/api/meals/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (!response.ok) {
