@@ -12,6 +12,7 @@ import {
   type DatabaseFoodItem,
 } from '@/types';
 import { mealRecordSchema } from '@/types';
+import { useToast } from '@/components/Toast';
 
 interface MealRecordFormProps {
   initialData?: {
@@ -75,6 +76,8 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
   });
 
   const watchItems = watch('items');
+
+  const { showToast } = useToast();
 
   // 栄養価の合計を計算
   const calculateTotalNutrients = (items: FoodItem[] = []) => {
@@ -208,7 +211,7 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
           date: new Date().toISOString().split('T')[0],
           photoUrl: null,
         });
-        alert('食事記録を保存しました');
+        showToast('食事記録を保存しました', 'success');
       }
 
       if (onSuccess) {
@@ -216,7 +219,7 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
       }
     } catch (error) {
       console.error('Error:', error);
-      alert(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+      showToast(error instanceof Error ? error.message : '予期せぬエラーが発生しました', 'error');
     }
   };
 
