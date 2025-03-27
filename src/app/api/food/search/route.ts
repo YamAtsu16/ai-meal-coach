@@ -8,142 +8,60 @@ import type {
   EdamamParsedFood,
   EdamamResponse
 } from '@/types/external';
+import { translateToEnglish, translateToJapanese } from '@/lib/translation';
 
 const EDAMAM_APP_ID = process.env.EDAMAM_APP_ID;
 const EDAMAM_APP_KEY = process.env.EDAMAM_APP_KEY;
 const EDAMAM_API_URL = 'https://api.edamam.com/api/food-database/v2/parser';
 
-// 日本語から英語への変換マッピング
-const JA_TO_EN_MAPPING: { [key: string]: string } = {
-  // 果物
-  'りんご': 'apple',
-  'バナナ': 'banana',
-  'オレンジ': 'orange',
-  'みかん': 'mandarin orange',
-  'いちご': 'strawberry',
-  'ぶどう': 'grape',
-  'レモン': 'lemon',
-  'もも': 'peach',
-  'キウイ': 'kiwi',
-  'メロン': 'melon',
-  'すいか': 'watermelon',
-  'パイナップル': 'pineapple',
-  'マンゴー': 'mango',
-  '梨': 'pear',
-  '柿': 'persimmon',
+// 検索結果の最大数（APIの制限を避けるため）
+const MAX_RESULTS = 5;
 
-  // 野菜
-  'トマト': 'tomato',
-  'きゅうり': 'cucumber',
-  'なす': 'eggplant',
-  'ピーマン': 'green pepper',
-  'にんじん': 'carrot',
-  'じゃがいも': 'potato',
-  'さつまいも': 'sweet potato',
-  'かぼちゃ': 'pumpkin',
-  'ほうれん草': 'spinach',
-  'キャベツ': 'cabbage',
-  'レタス': 'lettuce',
-  'たまねぎ': 'onion',
-  'ねぎ': 'green onion',
-  'にんにく': 'garlic',
-  'しょうが': 'ginger',
-
-  // 肉類
-  '牛肉': 'beef',
-  '豚肉': 'pork',
-  '鶏肉': 'chicken',
-  '鶏むね肉': 'chicken breast',
-  '鶏もも肉': 'chicken thigh',
-  'ハム': 'ham',
-  'ベーコン': 'bacon',
-  'ソーセージ': 'sausage',
-
-  // 魚介類
-  '魚': 'fish',
-  'サーモン': 'salmon',
-  'まぐろ': 'tuna',
-  'さば': 'mackerel',
-  'あじ': 'horse mackerel',
-  'いわし': 'sardine',
-  'えび': 'shrimp',
-  'かに': 'crab',
-  'たこ': 'octopus',
-  'いか': 'squid',
-
-  // 乳製品・卵
-  '卵': 'egg',
-  '牛乳': 'milk',
-  'チーズ': 'cheese',
-  'ヨーグルト': 'yogurt',
-  'バター': 'butter',
-  '生クリーム': 'heavy cream',
-
-  // 主食・穀物
-  'パン': 'bread',
-  'ご飯': 'rice',
-  '米': 'rice',
-  'パスタ': 'pasta',
-  '麺': 'noodles',
-  'うどん': 'udon noodles',
-  'そば': 'soba noodles',
-  'ラーメン': 'ramen noodles',
-
-  // 豆類・豆製品
-  '豆腐': 'tofu',
-  '納豆': 'natto',
-  '枝豆': 'edamame',
-  '大豆': 'soybean',
-
-  // 調味料
-  '醤油': 'soy sauce',
-  'みそ': 'miso',
-  'マヨネーズ': 'mayonnaise',
-  'ケチャップ': 'ketchup',
-  'ドレッシング': 'dressing',
-  '砂糖': 'sugar',
-  '塩': 'salt',
-  '油': 'oil'
-};
-
-// 英語から日本語への変換マッピング
-const EN_TO_JA_MAPPING: { [key: string]: string } = Object.entries(JA_TO_EN_MAPPING).reduce((acc, [ja, en]) => {
-  acc[en.toLowerCase()] = ja;
-  return acc;
-}, {} as { [key: string]: string });
-
-function translateToEnglish(query: string): string {
-  // 完全一致で検索
-  if (JA_TO_EN_MAPPING[query]) {
-    return JA_TO_EN_MAPPING[query];
+// 英語から日本語へのラベル翻訳
+async function translateLabel(label: string): Promise<string> {
+  try {
+    // DeepL APIで翻訳
+    const translatedLabel = await translateToJapanese(label);
+    return translatedLabel;
+  } catch (error) {
+    console.error('Label translation error:', error);
+    return label;
   }
-
-  // 部分一致で検索
-  for (const [ja, en] of Object.entries(JA_TO_EN_MAPPING)) {
-    if (query.includes(ja)) {
-      return en;
-    }
-  }
-
-  return query;
 }
 
-function translateLabel(label: string): string {
-  const lowerLabel = label.toLowerCase();
-  
-  // 完全一致で検索
-  if (EN_TO_JA_MAPPING[lowerLabel]) {
-    return EN_TO_JA_MAPPING[lowerLabel];
-  }
-
-  // 部分一致で検索
-  for (const [en, ja] of Object.entries(EN_TO_JA_MAPPING)) {
-    if (lowerLabel.includes(en)) {
-      return ja;
+// 検索クエリとの関連性に基づいて食品をソートする関数
+function sortByRelevance(hints: EdamamHint[], query: string, translatedQuery: string): EdamamHint[] {
+  // 関連性スコアを計算
+  const scoredHints = hints.map(hint => {
+    const label = (hint.food.knownAs || hint.food.label).toLowerCase();
+    let score = 0;
+    
+    // 完全一致は最高スコア
+    if (label === translatedQuery.toLowerCase()) {
+      score += 100;
     }
-  }
-
-  return label;
+    // 部分一致
+    else if (label.includes(translatedQuery.toLowerCase())) {
+      score += 50;
+    }
+    // 単語単位での部分一致
+    else {
+      const words = translatedQuery.toLowerCase().split(/\s+/);
+      for (const word of words) {
+        if (word.length > 2 && label.includes(word)) { // 短すぎる単語は除外
+          score += 25;
+        }
+      }
+    }
+    
+    return { hint, score };
+  });
+  
+  // スコア順にソート
+  scoredHints.sort((a, b) => b.score - a.score);
+  
+  // 最大件数に制限してヒントだけを返す
+  return scoredHints.slice(0, MAX_RESULTS).map(item => item.hint);
 }
 
 export async function GET(request: Request) {
@@ -163,7 +81,17 @@ export async function GET(request: Request) {
   }
 
   try {
-    const translatedQuery = translateToEnglish(query);
+    // DeepL APIを使用して翻訳
+    const translatedQuery = await translateToEnglish(query);
+    
+    // 翻訳結果が元のクエリと同じ場合（翻訳に失敗した場合）、空の結果を返す
+    if (translatedQuery === query && !/^[a-zA-Z\s]+$/.test(query)) {
+      console.log(`翻訳に失敗したため検索をスキップします: "${query}"`);
+      return NextResponse.json([]);
+    }
+    
+    console.log(`クエリの翻訳: "${query}" -> "${translatedQuery}"`);
+    
     const apiUrl = `${EDAMAM_API_URL}?app_id=${EDAMAM_APP_ID}&app_key=${EDAMAM_APP_KEY}&ingr=${encodeURIComponent(translatedQuery)}`;
     const response = await fetch(apiUrl);
 
@@ -173,15 +101,26 @@ export async function GET(request: Request) {
 
     const data: EdamamResponse = await response.json();
     
-    const foods = data.hints.map(hint => ({
-      foodId: hint.food.foodId,
-      label: translateLabel(hint.food.knownAs || hint.food.label),
-      nutrients: {
-        ENERC_KCAL: hint.food.nutrients.ENERC_KCAL || 0,
-        PROCNT: hint.food.nutrients.PROCNT || 0,
-        FAT: hint.food.nutrients.FAT || 0,
-        CHOCDF: hint.food.nutrients.CHOCDF || 0
-      }
+    // クエリとの関連性に基づいて結果をフィルタリングとソート
+    const sortedHints = sortByRelevance(data.hints, query, translatedQuery);
+    
+    // すべてのラベルを一括で翻訳
+    const foods = await Promise.all(sortedHints.map(async (hint) => {
+      const originalLabel = hint.food.knownAs || hint.food.label;
+      const translatedLabel = await translateLabel(originalLabel);
+      
+      return {
+        foodId: hint.food.foodId,
+        label: translatedLabel,
+        originalLabel: originalLabel, // 元の英語ラベルも保持
+        originalQuery: query, // 元の検索クエリを保持
+        nutrients: {
+          ENERC_KCAL: hint.food.nutrients.ENERC_KCAL || 0,
+          PROCNT: hint.food.nutrients.PROCNT || 0,
+          FAT: hint.food.nutrients.FAT || 0,
+          CHOCDF: hint.food.nutrients.CHOCDF || 0
+        }
+      };
     }));
 
     return NextResponse.json(foods);
