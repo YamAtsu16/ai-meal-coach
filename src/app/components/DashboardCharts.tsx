@@ -405,8 +405,8 @@ export function DashboardCharts() {
                     {MEAL_TYPE_LABELS[mealType]}
                   </h3>
                   <div className="space-y-3">
-                    {mealsOfType.map(meal => (
-                      <div key={meal.id} className="bg-gray-50 rounded-lg p-4">
+                    {mealsOfType.map((meal, mealIndex) => (
+                      <div key={`${mealType}-${mealIndex}-${meal.id}`} className="bg-gray-50 rounded-lg p-4">
                         <div className="grid grid-cols-1 gap-2">
                           {meal.items?.map((item, itemIndex) => (
                             <div key={`${meal.id}-item-${itemIndex}`} className="flex justify-between">
