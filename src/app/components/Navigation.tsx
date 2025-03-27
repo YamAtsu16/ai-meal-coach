@@ -1,61 +1,125 @@
 'use client';
 
-import { 
-  HomeIcon, 
-  PlusCircleIcon, 
-  ChartBarIcon, 
-  UserCircleIcon,
-  Cog6ToothIcon
-} from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const navigation = [
-  { name: 'ホーム', href: '/', icon: HomeIcon },
-  { name: '記録', href: '/record', icon: PlusCircleIcon },
-  { name: '分析', href: '/analysis', icon: ChartBarIcon },
-  { name: 'プロフィール', href: '/profile', icon: UserCircleIcon },
-  { name: '設定', href: '/settings', icon: Cog6ToothIcon },
-];
+import { 
+  HomeIcon, 
+  ClipboardDocumentListIcon, 
+  ChartBarIcon,
+  UserIcon, 
+  ArrowRightOnRectangleIcon,
+  ArrowLeftOnRectangleIcon
+} from '@heroicons/react/24/outline';
+import { signOut, useSession } from 'next-auth/react';
 
 export function Navigation() {
   const pathname = usePathname();
+  const { status } = useSession();
+  const isAuthenticated = status === 'authenticated';
+
+  // アクティブなリンクかどうかを判定
+  const isActive = (path: string) => {
+    return pathname === path;
+  };
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/login' });
+  };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 sm:px-6 md:top-0 md:bottom-auto md:border-b md:border-t-0">
-      <div className="container mx-auto">
-        <div className="flex justify-between items-center h-16">
-          {/* ロゴ（md以上で表示） */}
-          <div className="hidden md:flex items-center">
-            <span className="text-xl font-bold text-blue-600">AI食事管理</span>
-          </div>
+    <nav className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100 md:top-0 md:bottom-auto md:border-t-0 md:border-b">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          <Link href="/" className="font-bold text-xl text-blue-600">
+            AI食事コーチ
+          </Link>
 
-          {/* ナビゲーションリンク */}
-          <div className="flex justify-around md:justify-center w-full md:w-auto md:space-x-8">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex flex-col items-center justify-center px-3 py-2 text-sm font-medium transition-colors
-                    ${isActive 
-                      ? 'text-blue-600' 
-                      : 'text-gray-600 hover:text-blue-600'
+          <div className="fixed bottom-0 left-0 right-0 md:static">
+            <div className="flex justify-around md:justify-end md:space-x-4 bg-white py-2 md:py-0">
+              {isAuthenticated ? (
+                // ログイン済みの場合のメニュー
+                <>
+                  <Link
+                    href="/"
+                    className={`flex flex-col md:flex-row items-center px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/') || isActive('/')
+                        ? 'text-blue-600'
+                        : 'text-gray-500 hover:text-blue-600'
                     }`}
-                >
-                  <item.icon 
-                    className={`h-6 w-6 mb-1 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} 
-                    aria-hidden="true" 
-                  />
-                  <span className="text-xs">{item.name}</span>
-                </Link>
-              );
-            })}
+                  >
+                    <HomeIcon className="h-6 w-6 md:mr-1" />
+                    <span className="mt-1 md:mt-0">ホーム</span>
+                  </Link>
+                  <Link
+                    href="/record"
+                    className={`flex flex-col md:flex-row items-center px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/record')
+                        ? 'text-blue-600'
+                        : 'text-gray-500 hover:text-blue-600'
+                    }`}
+                  >
+                    <ClipboardDocumentListIcon className="h-6 w-6 md:mr-1" />
+                    <span className="mt-1 md:mt-0">記録</span>
+                  </Link>
+                  <Link
+                    href="/analysis"
+                    className={`flex flex-col md:flex-row items-center px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/analysis')
+                        ? 'text-blue-600'
+                        : 'text-gray-500 hover:text-blue-600'
+                    }`}
+                  >
+                    <ChartBarIcon className="h-6 w-6 md:mr-1" />
+                    <span className="mt-1 md:mt-0">分析</span>
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className={`flex flex-col md:flex-row items-center px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/profile')
+                        ? 'text-blue-600'
+                        : 'text-gray-500 hover:text-blue-600'
+                    }`}
+                  >
+                    <UserIcon className="h-6 w-6 md:mr-1" />
+                    <span className="mt-1 md:mt-0">設定</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex flex-col md:flex-row items-center px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-blue-600"
+                  >
+                    <ArrowRightOnRectangleIcon className="h-6 w-6 md:mr-1" />
+                    <span className="mt-1 md:mt-0">ログアウト</span>
+                  </button>
+                </>
+              ) : (
+                // 未ログインの場合のメニュー
+                <>
+                  <Link
+                    href="/login"
+                    className={`flex flex-col md:flex-row items-center px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/login')
+                        ? 'text-blue-600'
+                        : 'text-gray-500 hover:text-blue-600'
+                    }`}
+                  >
+                    <ArrowLeftOnRectangleIcon className="h-6 w-6 md:mr-1" />
+                    <span className="mt-1 md:mt-0">ログイン</span>
+                  </Link>
+                  <Link
+                    href="/register"
+                    className={`flex flex-col md:flex-row items-center px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/register')
+                        ? 'text-blue-600'
+                        : 'text-gray-500 hover:text-blue-600'
+                    }`}
+                  >
+                    <UserIcon className="h-6 w-6 md:mr-1" />
+                    <span className="mt-1 md:mt-0">新規登録</span>
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
-
-          {/* 右側のスペース（バランス用） */}
-          <div className="hidden md:block w-40" />
         </div>
       </div>
     </nav>
