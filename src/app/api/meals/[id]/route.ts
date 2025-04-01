@@ -3,7 +3,12 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { getToken } from 'next-auth/jwt';
 import { ObjectId } from 'mongodb';
 
-// 食事記録の取得
+/**
+ * 食事記録の取得
+ * @param request リクエストオブジェクト
+ * @param params パラメータオブジェクト
+ * @returns レスポンスオブジェクト
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -61,7 +66,12 @@ export async function GET(
   }
 }
 
-// 食事記録の更新
+/**
+ * 食事記録の更新
+ * @param request リクエストオブジェクト
+ * @param params パラメータオブジェクト
+ * @returns レスポンスオブジェクト
+ */
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -135,7 +145,12 @@ export async function PUT(
   }
 }
 
-// 食事記録の削除
+/**
+ * 食事記録の削除
+ * @param request リクエストオブジェクト
+ * @param params パラメータオブジェクト
+ * @returns レスポンスオブジェクト
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }

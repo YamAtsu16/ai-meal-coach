@@ -3,6 +3,9 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { getToken } from 'next-auth/jwt';
 import { ObjectId } from 'mongodb';
 
+/**
+ * 食品の入力型
+ */
 interface FoodItemInput {
   name: string;
   quantity: number;
@@ -17,6 +20,9 @@ interface FoodItemInput {
   totalCarbs: number;
 }
 
+/**
+ * 食事記録の入力型
+ */
 interface MealRecordInput {
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   date: string;
@@ -24,7 +30,11 @@ interface MealRecordInput {
   photoUrl: string | null;
 }
 
-// 食事記録の取得
+/**
+ * 食事記録の取得
+ * @param request リクエストオブジェクト
+ * @returns レスポンスオブジェクト
+ */
 export async function GET(request: NextRequest) {
   try {
     // ユーザー情報を取得
@@ -48,7 +58,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 食事記録の作成
+/**
+ * 食事記録の作成
+ * @param request リクエストオブジェクト
+ * @returns レスポンスオブジェクト
+ */
 export async function POST(request: NextRequest) {
   try {
     // ユーザー情報を取得
@@ -85,6 +99,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * 食事記録の更新
+ * @param request リクエストオブジェクト
+ * @returns レスポンスオブジェクト
+ */
 export async function PUT(request: NextRequest) {
   try {
     // ユーザー情報を取得

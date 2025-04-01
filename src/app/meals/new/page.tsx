@@ -28,7 +28,6 @@ export default function NewMealRecordPage() {
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <MealRecordForm
               onSuccess={() => {
-                console.log('食事記録の登録が完了しました');
                 router.push('/');
               }}
             />

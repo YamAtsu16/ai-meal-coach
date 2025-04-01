@@ -17,7 +17,11 @@ const EDAMAM_API_URL = 'https://api.edamam.com/api/food-database/v2/parser';
 // 検索結果の最大数（APIの制限を避けるため）
 const MAX_RESULTS = 5;
 
-// 英語から日本語へのラベル翻訳
+/**
+ * 英語から日本語へのラベル翻訳
+ * @param label 翻訳対象のラベル
+ * @returns 翻訳されたラベル
+ */
 async function translateLabel(label: string): Promise<string> {
   try {
     // DeepL APIで翻訳
@@ -29,7 +33,13 @@ async function translateLabel(label: string): Promise<string> {
   }
 }
 
-// 検索クエリとの関連性に基づいて食品をソートする関数
+/**
+ * 検索クエリとの関連性に基づいて食品をソートする関数
+ * @param hints 検索結果のヒント
+ * @param query 検索クエリ
+ * @param translatedQuery 翻訳された検索クエリ
+ * @returns ソートされたヒント
+ */
 function sortByRelevance(hints: EdamamHint[], query: string, translatedQuery: string): EdamamHint[] {
   // 関連性スコアを計算
   const scoredHints = hints.map(hint => {
@@ -64,6 +74,11 @@ function sortByRelevance(hints: EdamamHint[], query: string, translatedQuery: st
   return scoredHints.slice(0, MAX_RESULTS).map(item => item.hint);
 }
 
+/**
+ * 食品検索API
+ * @param request リクエストオブジェクト
+ * @returns レスポンスオブジェクト
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('query');

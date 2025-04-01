@@ -3,10 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowPathIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
+/**
+ * 栄養アドバイスコンポーネントのProps
+ */
 interface NutritionAdviceProps {
   selectedDate: string;
 }
 
+/**
+ * 栄養アドバイスコンポーネント
+ * @param selectedDate 選択された日付
+ */
 export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

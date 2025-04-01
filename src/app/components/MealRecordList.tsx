@@ -7,6 +7,9 @@ import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import type { DatabaseMealRecord } from '@/types';
 
+/**
+ * 食事記録の種類のラベル
+ */
 const MEAL_TYPE_LABELS: Record<string, string> = {
   breakfast: '朝食',
   lunch: '昼食',
@@ -14,6 +17,10 @@ const MEAL_TYPE_LABELS: Record<string, string> = {
   snack: '間食',
 };
 
+/**
+ * 食事記録リストコンポーネント
+ * @returns 食事記録リストコンポーネント
+ */
 export function MealRecordList() {
   const [meals, setMeals] = useState<DatabaseMealRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);

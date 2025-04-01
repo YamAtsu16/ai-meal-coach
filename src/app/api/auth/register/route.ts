@@ -10,6 +10,11 @@ const registerSchema = z.object({
   password: z.string().min(8, "パスワードは8文字以上必要です"),
 });
 
+/**
+ * ユーザー登録API
+ * @param request リクエストオブジェクト
+ * @returns レスポンスオブジェクト
+ */
 export async function POST(request: Request) {
   try {
     // リクエストボディを取得

@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
-// 保護されたルート
+/**
+ * 保護されたルート
+ */
 const protectedPaths = [
   '/',
   '/profile',
@@ -13,7 +15,9 @@ const protectedPaths = [
   '/api/analysis',
 ];
 
-// 認証不要のルート
+/**
+ * 認証不要のルート
+ */
 const publicPaths = [
   '/login',
   '/register',

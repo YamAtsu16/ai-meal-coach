@@ -7,17 +7,25 @@ import NutritionAdvice from '../components/NutritionAdvice';
 export default function AnalysisPage() {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   
-  // 選択できる日付の範囲を設定（過去1ヶ月から今日まで）
+  /**
+   * 選択できる日付の範囲を設定（過去1ヶ月から今日まで）
+   */
   const getMinDate = () => {
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
     return date.toISOString().split('T')[0];
   };
 
+  /**
+   * 選択できる日付の最大値を設定（今日）
+   */
   const getMaxDate = () => {
     return new Date().toISOString().split('T')[0];
   };
 
+  /**
+   * 日付選択時の処理
+   */
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(e.target.value);
   };

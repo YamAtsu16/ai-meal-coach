@@ -4,10 +4,17 @@ import { useState, useRef, useEffect } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import type { FoodSearchResult } from '@/types';
 
+/**
+ * 食品検索コンポーネントのProps
+ */
 interface FoodSearchProps {
   onSelect: (food: FoodSearchResult) => void;
 }
 
+/**
+ * 食品検索コンポーネント
+ * @param onSelect 選択時のコールバック関数
+ */
 export function FoodSearch({ onSelect }: FoodSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<FoodSearchResult[]>([]);

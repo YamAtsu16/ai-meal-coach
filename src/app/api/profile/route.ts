@@ -3,7 +3,10 @@ import { UserProfileFormData } from '@/types/user';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
 
-// プロフィール取得
+/**
+ * プロフィール取得
+ * @returns レスポンスオブジェクト
+ */
 export async function GET() {
   try {
     // セッションからユーザー情報を取得
@@ -64,7 +67,11 @@ export async function GET() {
   }
 }
 
-// プロフィール更新
+/**
+ * プロフィール更新
+ * @param request リクエストオブジェクト
+ * @returns レスポンスオブジェクト
+ */
 export async function POST(request: NextRequest) {
   try {
     // セッションからユーザー情報を取得

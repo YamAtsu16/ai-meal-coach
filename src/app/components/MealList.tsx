@@ -8,6 +8,9 @@ import { PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon, CalendarIcon } f
 import { Pagination } from './Pagination';
 import type { MealListProps } from '@/types';
 
+/**
+ * 食事記録の種類のラベル
+ */
 const MEAL_TYPE_LABELS = {
   breakfast: '朝食',
   lunch: '昼食',
@@ -15,8 +18,16 @@ const MEAL_TYPE_LABELS = {
   snack: '間食'
 } as const;
 
+/**
+ * ページごとの表示件数
+ */
 const ITEMS_PER_PAGE = 5;
 
+/**
+ * 食事記録リストコンポーネント
+ * @param meals 食事記録リスト
+ * @param onDelete 削除時のコールバック関数
+ */
 export function MealList({ meals, onDelete }: MealListProps) {
   const [collapsedMealIds, setCollapsedMealIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);

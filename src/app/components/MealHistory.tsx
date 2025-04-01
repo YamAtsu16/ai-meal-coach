@@ -6,6 +6,10 @@ import { ja } from 'date-fns/locale';
 import { FireIcon, ChartBarIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import type { DatabaseMealRecord } from '@/types';
 
+/**
+ * 食事記録履歴コンポーネント
+ * @returns 食事記録履歴コンポーネント
+ */
 export function MealHistory() {
   const [meals, setMeals] = useState<DatabaseMealRecord[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());

@@ -14,6 +14,9 @@ import {
 import { mealRecordSchema } from '@/types';
 import { useToast } from '@/components/Toast';
 
+/**
+ * 食事記録フォームのProps
+ */
 interface MealRecordFormProps {
   initialData?: {
     id?: string;
@@ -25,6 +28,11 @@ interface MealRecordFormProps {
   onSuccess?: () => void;
 }
 
+/**
+ * 食事記録フォームコンポーネント
+ * @param initialData 初期データ
+ * @param onSuccess 成功時のコールバック関数
+ */
 export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) {
   const [isEditMode] = useState(Boolean(initialData?.id));
   const [isSubmitting, setIsSubmitting] = useState(false);

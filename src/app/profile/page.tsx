@@ -6,12 +6,26 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { UserProfileFormData, userProfileSchema } from '@/types/user';
 
 export default function ProfilePage() {
+  /**
+   * ローディング状態
+   */
   const [isLoading, setIsLoading] = useState(false);
+  /**
+   * プロフィールデータのローディング状態
+   */
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  /**
+   * プロフィールデータの保存状態
+   */
   const [isSaved, setIsSaved] = useState(false);
+  /**
+   * エラーメッセージ
+   */
   const [error, setError] = useState<string | null>(null);
   
-  // React Hook Formの設定
+  /**
+   * フォームのコントロール
+   */
   const { register, handleSubmit, formState: { errors }, reset } = useForm<UserProfileFormData>({
     resolver: zodResolver(userProfileSchema),
     defaultValues: {
@@ -28,7 +42,10 @@ export default function ProfilePage() {
     }
   });
 
-  // プロフィールデータの取得
+
+  /**
+   * プロフィールデータの取得
+   */
   useEffect(() => {
     const fetchProfileData = async () => {
       setIsLoadingProfile(true);
@@ -53,7 +70,9 @@ export default function ProfilePage() {
     fetchProfileData();
   }, [reset]);
 
-  // プロフィール保存処理
+  /**
+   * プロフィール保存処理
+   */
   const onSubmit = async (data: UserProfileFormData) => {
     setIsLoading(true);
     setError(null);

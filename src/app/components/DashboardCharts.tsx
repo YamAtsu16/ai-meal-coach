@@ -7,6 +7,9 @@ import type { DatabaseMealRecord } from '@/types';
 import type { UserProfileFormData } from '@/types/user'; 
 import Link from 'next/link';
 
+/**
+ * 食事記録の種類のラベル
+ */
 const MEAL_TYPE_LABELS = {
   breakfast: '朝食',
   lunch: '昼食',
@@ -14,6 +17,10 @@ const MEAL_TYPE_LABELS = {
   snack: '間食'
 } as const;
 
+/**
+ * ダッシュボードのグラフ
+ * @returns ダッシュボードのグラフ
+ */
 export function DashboardCharts() {
   const [meals, setMeals] = useState<DatabaseMealRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);

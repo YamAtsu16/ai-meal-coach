@@ -5,10 +5,24 @@ if (!process.env.DATABASE_URL) {
   throw new Error('環境変数 DATABASE_URL が設定されていません');
 }
 
+/**
+ * データベースのURI
+ */
 const uri = process.env.DATABASE_URL;
+
+/**
+ * データベースのオプション
+ */
 const options = {};
 
+/**
+ * データベースのクライアント
+ */
 let client;
+
+/**
+ * データベースのクライアントのPromise
+ */
 let clientPromise: Promise<MongoClient>;
 
 if (process.env.NODE_ENV === 'development') {
@@ -28,10 +42,14 @@ if (process.env.NODE_ENV === 'development') {
   clientPromise = client.connect();
 }
 
-// クライアントをエクスポート（NextAuth.js のMongoDBアダプター用）
+/**
+ * データベースのクライアントのPromiseをエクスポート（NextAuth.js のMongoDBアダプター用）
+ */
 export default clientPromise;
 
-// 使いやすいデータベース接続関数
+/**
+ * データベース接続関数
+ */
 export async function connectToDatabase() {
   const client = await clientPromise;
   // 既存の環境変数からデータベース名を取得

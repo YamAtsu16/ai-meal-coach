@@ -17,25 +17,47 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+  /**
+   * ルーティング
+   */
   const router = useRouter();
+  /**
+   * クエリパラメータ
+   */
   const searchParams = useSearchParams();
+  /**
+   * コールバックURL
+   */
   const callbackUrl = searchParams.get('callbackUrl') || '/';
+  /**
+   * ローディング状態
+   */
   const [isLoading, setIsLoading] = useState(false);
+  /**
+   * エラーメッセージ
+   */
   const [loginError, setLoginError] = useState<string | null>(null);
 
+  /**
+   * フォームのコントロール
+   */
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
+    register, // フォームINPUT
+    handleSubmit, // フォームの送信
+    formState: { errors }, // フォームのエラー
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema), // フォームのスキーマ
   });
 
+  /**
+   * ログインボタンをクリックしたときの処理
+   */
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
       setLoginError(null);
 
+      // ログイン
       const result = await signIn('credentials', {
         redirect: false,
         email: data.email,

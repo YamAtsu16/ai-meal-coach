@@ -7,7 +7,9 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-// 登録フォームのスキーマ
+/**
+ * 登録フォームのスキーマ
+ */
 const registerSchema = z.object({
   name: z.string().min(1, '名前を入力してください'),
   email: z.string().email('有効なメールアドレスを入力してください'),
@@ -21,11 +23,25 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
+  /**
+   * ルーティング
+   */
   const router = useRouter();
+  /**
+   * ローディング状態
+   */
   const [isLoading, setIsLoading] = useState(false);
+  /**
+   * エラーメッセージ
+   */
   const [registerError, setRegisterError] = useState<string | null>(null);
+  /**
+   * 登録成功メッセージ
+   */
   const [registerSuccess, setRegisterSuccess] = useState(false);
-
+  /**
+   * フォームのコントロール
+   */
   const {
     register,
     handleSubmit,
@@ -35,12 +51,19 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
 
+  /**
+   * 登録ボタンをクリックしたときの処理
+   */
   const onSubmit = async (data: RegisterFormData) => {
     try {
+      // ローディング状態の初期化
       setIsLoading(true);
+      // エラーメッセージの初期化
       setRegisterError(null);
+      // 登録成功メッセージの初期化
       setRegisterSuccess(false);
 
+      // 登録APIの呼び出し
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
@@ -52,16 +75,14 @@ export default function RegisterPage() {
           password: data.password,
         }),
       });
-
       const result = await response.json();
-
       if (!response.ok) {
         throw new Error(result.error || '登録に失敗しました');
       }
 
-      // 登録成功
       setRegisterSuccess(true);
-      reset(); // フォームをリセット
+      // フォームをリセット
+      reset();
       
       // 3秒後にログインページへリダイレクト
       setTimeout(() => {

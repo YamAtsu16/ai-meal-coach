@@ -9,6 +9,9 @@ import { JWT } from 'next-auth/jwt';
 import { Session } from 'next-auth';
 import { User } from 'next-auth';
 
+/**
+ * 認証オプション
+ */
 export const authOptions: AuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
   providers: [

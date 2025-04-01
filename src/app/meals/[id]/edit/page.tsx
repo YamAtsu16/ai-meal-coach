@@ -8,16 +8,36 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import type { EditMealRecordPageProps, DatabaseMealRecord } from '@/types';
 
 export default function EditMealRecord({ params }: EditMealRecordPageProps) {
+  /**
+   * ルーティング
+   */
   const router = useRouter();
+  /**
+   * 食事記録
+   */
   const [meal, setMeal] = useState<DatabaseMealRecord | null>(null);
+  /**
+   * ローディング状態
+   */
   const [isLoading, setIsLoading] = useState(true);
+  /**
+   * エラーメッセージ
+   */
   const [error, setError] = useState<string | null>(null);
+  /**
+   * クエリパラメータ
+   */
   const resolvedParams = use(params);
 
+  /**
+   * 食事記録の取得
+   */
   useEffect(() => {
+    // 非同期関数の定義
     const fetchMeal = async () => {
       try {
         setIsLoading(true);
+        // 食事記録の取得
         const response = await fetch(`/api/meals/${resolvedParams.id}`, {
           credentials: 'include',
           headers: {

@@ -2,12 +2,21 @@
 
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
+/**
+ * ページネーションコンポーネントのProps
+ */
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 }
 
+/**
+ * ページネーションコンポーネント
+ * @param currentPage 現在のページ
+ * @param totalPages 総ページ数
+ * @param onPageChange ページ変更時のコールバック関数
+ */
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
   
