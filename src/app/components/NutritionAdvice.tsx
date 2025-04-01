@@ -20,12 +20,17 @@ export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) 
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [showAPIKeyWarning, setShowAPIKeyWarning] = useState(false);
 
-  // 選択された日付が変更された時にリセット
+  /**
+   * 選択された日付が変更された時にリセット
+   */
   useEffect(() => {
     setAnalysisResult(null);
     setError(null);
   }, [selectedDate]);
 
+  /**
+   * 分析を開始する
+   */
   const handleStartAnalysis = async () => {
     try {
       setIsLoading(true);
@@ -39,7 +44,6 @@ export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) 
         },
         body: JSON.stringify({
           date: selectedDate,
-          analysisType: 'daily',
         }),
       });
 

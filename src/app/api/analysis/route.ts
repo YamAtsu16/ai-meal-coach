@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeMeals } from '@/lib/openai';
 import type { DatabaseMealRecord } from '@/types';
-import type { UserProfileFormData } from '@/types/user';
+import type { UserProfileFormData } from '@/types/features/profile/types';
 import { getToken } from 'next-auth/jwt';
 
 /**
@@ -20,34 +20,22 @@ export async function POST(request: NextRequest) {
 
     // リクエストボディの解析
     const body = await request.json();
-    const { date, analysisType = 'daily' } = body;
+    const { date } = body;
 
-    if (!date && analysisType === 'daily') {
+    if (!date) {
       return NextResponse.json(
         { success: false, message: '日付が指定されていません' },
         { status: 400 }
       );
     }
-
-    // 日付範囲の設定
-    let startDate: Date, endDate: Date;
     
-    if (analysisType === 'daily') {
-      // 1日の分析の場合、指定された日の0時から23時59分59秒までを対象とする
-      startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      
-      endDate = new Date(date);
-      endDate.setHours(23, 59, 59, 999);
-    } else {
-      // 週間分析の場合、現在の日付から過去7日間を対象とする
-      endDate = new Date();
-      endDate.setHours(23, 59, 59, 999);
-      
-      startDate = new Date();
-      startDate.setDate(endDate.getDate() - 7);
-      startDate.setHours(0, 0, 0, 0);
-    }
+    // 指定された日の0時から23時59分59秒までを対象とする
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+    
 
     // リクエストのオリジンを取得
     const origin = request.headers.get('origin') || request.headers.get('host') || 'http://localhost:3000';
@@ -114,13 +102,12 @@ export async function POST(request: NextRequest) {
     }
 
     // OpenAI APIを使用した食事分析
-    const analysisResult = await analyzeMeals(meals, userProfile, analysisType);
+    const analysisResult = await analyzeMeals(meals, userProfile);
 
     // 結果を返す
     return NextResponse.json({
       success: true,
       data: {
-        analysisType,
         mealCount: meals.length,
         result: analysisResult,
         startDate: startDate.toISOString(),

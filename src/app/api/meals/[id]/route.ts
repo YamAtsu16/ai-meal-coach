@@ -94,7 +94,7 @@ export async function PUT(
 
     const userId = token.id;
     const body = await request.json();
-    const { mealType, date, items, photoUrl } = body;
+    const { mealType, date, items } = body;
 
     const { db } = await connectToDatabase();
     
@@ -120,7 +120,6 @@ export async function PUT(
         $set: {
           mealType,
           date: new Date(date),
-          photoUrl,
           items,
           updatedAt: new Date()
         }

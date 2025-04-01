@@ -5,14 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { FoodSearch } from './FoodSearch';
 import { useState, useEffect } from 'react';
-import {
-  type MealRecord,
-  type FoodItem,
-  type FoodSearchResult,
-  type DatabaseFoodItem,
-} from '@/types';
-import { mealRecordSchema } from '@/types';
-import { useToast } from '@/components/Toast';
+import { useToast } from '@/provider';
+import { DatabaseFoodItem, MealRecord, mealRecordSchema, FoodItem, FoodSearchResult } from '@/types';
 
 /**
  * 食事記録フォームのProps
@@ -23,7 +17,6 @@ interface MealRecordFormProps {
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
     date: string;
     items: DatabaseFoodItem[];
-    photoUrl?: string | null;
   };
   onSuccess?: () => void;
 }
@@ -34,9 +27,12 @@ interface MealRecordFormProps {
  * @param onSuccess 成功時のコールバック関数
  */
 export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) {
+  /** 編集モードかどうか */
   const [isEditMode] = useState(Boolean(initialData?.id));
+  /** 送信中かどうか */
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /** フォームの登録 */
   const {
     register,
     control,
@@ -51,7 +47,6 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
     defaultValues: initialData ? {
       mealType: initialData.mealType,
       date: initialData.date,
-      photoUrl: initialData.photoUrl,
       items: initialData.items.map((item: DatabaseFoodItem) => {
         return {
           name: item.name,
@@ -77,20 +72,24 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
       mealType: 'breakfast',
       items: [],
       date: new Date().toISOString().split('T')[0],
-      photoUrl: null,
     },
   });
 
+  /** フィールドの追加 */
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'items',
   });
 
+  /** フィールドの監視 */
   const watchItems = watch('items');
 
+  /** トーストの表示 */
   const { showToast } = useToast();
 
-  // 栄養価の合計を計算
+  /**
+   * 栄養価の合計を計算
+   */
   const calculateTotalNutrients = (items: FoodItem[] = []) => {
     return items.reduce((acc, item) => ({
       kcal: acc.kcal + (item.nutrients?.total?.kcal || 0),
@@ -105,16 +104,21 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
     });
   };
 
+  /** 栄養価の合計 */
   const [totalNutrients, setTotalNutrients] = useState(calculateTotalNutrients(watchItems || []));
 
-  // 栄養価の合計を更新
+  /**
+   * 栄養価の合計を更新
+   */
   useEffect(() => {
     if (watchItems) {
       setTotalNutrients(calculateTotalNutrients(watchItems));
     }
   }, [watchItems]);
 
-  // 食品が選択された時の処理
+  /**
+   * 食品が選択された時の処理
+   */
   const handleFoodSelect = (selectedFood: FoodSearchResult) => {
     const quantity = 100; // デフォルト値
 
@@ -143,7 +147,9 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
     });
   };
 
-  // 数量が変更された時の処理
+  /**
+   * 数量が変更された時の処理
+   */
   const handleQuantityChange = (index: number, value: string) => {
     const newQuantity = Number(value);
     if (isNaN(newQuantity)) return;
@@ -163,12 +169,17 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
     }
   };
 
-  // 数量入力欄からフォーカスが外れた時の処理
+  /**
+   * 数量入力欄からフォーカスが外れた時の処理
+   */
   const handleQuantityBlur = () => {
     const items = getValues('items');
     setTotalNutrients(calculateTotalNutrients(items));
   };
 
+  /**
+   * フォームを送信する
+   */
   const onSubmit = async (data: MealRecord) => {
     try {
       setIsSubmitting(true);
@@ -190,8 +201,6 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
 
       const endpoint = isEditMode ? `/api/meals/${initialData!.id}` : '/api/meals';
       const method = isEditMode ? 'PUT' : 'POST';
-
-      console.log(`送信先: ${endpoint}, メソッド: ${method}`);
       
       const response = await fetch(endpoint, {
         method: method,
@@ -227,7 +236,6 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
           mealType: 'breakfast',
           items: [],
           date: new Date().toISOString().split('T')[0],
-          photoUrl: null,
         });
       }
       

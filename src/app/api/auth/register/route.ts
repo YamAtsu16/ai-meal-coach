@@ -1,14 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { hash } from 'bcryptjs';
-import { z } from 'zod';
-
-// ユーザー登録スキーマ
-const registerSchema = z.object({
-  name: z.string().min(1, "名前は必須です"),
-  email: z.string().email("有効なメールアドレスを入力してください"),
-  password: z.string().min(8, "パスワードは8文字以上必要です"),
-});
+import { registerSchema } from '@/types';
 
 /**
  * ユーザー登録API

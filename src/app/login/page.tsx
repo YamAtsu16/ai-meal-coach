@@ -4,38 +4,23 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { LoginFormData, loginSchema } from '@/types';
 
-// ログインフォームのスキーマ
-const loginSchema = z.object({
-  email: z.string().email('有効なメールアドレスを入力してください'),
-  password: z.string().min(1, 'パスワードを入力してください'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
-
+/**
+ * ログインページ
+ */
 export default function LoginPage() {
-  /**
-   * ルーティング
-   */
+  /** ルーティング */
   const router = useRouter();
-  /**
-   * クエリパラメータ
-   */
+  /** クエリパラメータ */
   const searchParams = useSearchParams();
-  /**
-   * コールバックURL
-   */
+  /** コールバックURL */
   const callbackUrl = searchParams.get('callbackUrl') || '/';
-  /**
-   * ローディング状態
-   */
+  /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(false);
-  /**
-   * エラーメッセージ
-   */
+  /** エラーメッセージ */
   const [loginError, setLoginError] = useState<string | null>(null);
 
   /**

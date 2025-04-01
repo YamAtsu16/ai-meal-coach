@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import type { DatabaseMealRecord } from '@/types';
-import type { UserProfileFormData } from '@/types/user';
+import type { UserProfileFormData } from '@/types/features/profile/types';
 
 // OpenAIクライアントの初期化
 const openai = new OpenAI({
@@ -12,12 +12,11 @@ const openai = new OpenAI({
  */
 export async function analyzeMeals(
   meals: DatabaseMealRecord[], 
-  userProfile: UserProfileFormData | null, 
-  analysisType: 'daily' | 'weekly'
+  userProfile: UserProfileFormData | null
 ): Promise<string> {
   try {
     // 分析用のプロンプトを作成
-    const prompt = createAnalysisPrompt(meals, userProfile, analysisType);
+    const prompt = createAnalysisPrompt(meals, userProfile);
     
     // OpenAI APIを呼び出して分析を実行
     const response = await openai.chat.completions.create({
@@ -31,7 +30,7 @@ export async function analyzeMeals(
 
 【基本情報分析】
 • ユーザーの身体特性（性別、身長、体重、BMI）に基づく基礎代謝や必要栄養素の評価
-• 現在の目標（減量/増量/維持）に対する適切性の評価
+• 現在の目標（減量/増量/維持）に対する栄養摂取目標値の適切性の評価
 • 現在の栄養摂取目標値が適切でない場合、 現在の目標（減量/増量/維持）に対する適切な栄養摂取目標値の提示
 
 【目標達成状況】
@@ -80,14 +79,7 @@ export async function analyzeMeals(
 function createAnalysisPrompt(
   meals: DatabaseMealRecord[], 
   userProfile: UserProfileFormData | null, 
-  analysisType: 'daily' | 'weekly'
 ): string {
-  // BMIの計算
-  const calculateBMI = (height: number | null | undefined, weight: number | null | undefined) => {
-    if (!height || !weight) return null;
-    const heightInM = height / 100;
-    return (weight / (heightInM * heightInM)).toFixed(1);
-  };
 
   // 基礎代謝量の計算（ハリス・ベネディクト方程式）
   const calculateBMR = (
@@ -98,6 +90,7 @@ function createAnalysisPrompt(
   ) => {
     if (!gender || !weight || !height || !birthDate) return null;
     
+    // 年齢の計算
     const today = new Date();
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
@@ -106,6 +99,7 @@ function createAnalysisPrompt(
       age--;
     }
 
+    // 性別に応じた基礎代謝量の計算
     if (gender === 'male') {
       return Math.round(66.47 + (13.75 * weight) + (5.003 * height) - (6.755 * age));
     } else if (gender === 'female') {
@@ -131,7 +125,6 @@ function createAnalysisPrompt(
   };
 
   // ユーザープロファイル情報の整形
-  const bmi = calculateBMI(userProfile?.height, userProfile?.weight);
   const bmr = calculateBMR(userProfile?.gender, userProfile?.weight, userProfile?.height, userProfile?.birthDate);
   const tdee = calculateTDEE(bmr, userProfile?.activityLevel);
 
@@ -140,7 +133,6 @@ function createAnalysisPrompt(
 • 性別: ${userProfile.gender === 'male' ? '男性' : userProfile.gender === 'female' ? '女性' : 'その他'}
 • 身長: ${userProfile.height ? `${userProfile.height}cm` : '未設定'}
 • 体重: ${userProfile.weight ? `${userProfile.weight}kg` : '未設定'}
-• BMI: ${bmi ? `${bmi}` : '未計算'}
 • 基礎代謝量: ${bmr ? `${bmr}kcal` : '未計算'}
 • 1日の消費カロリー目安: ${tdee ? `${tdee}kcal` : '未計算'}
 • 活動レベル: ${getActivityLevelLabel(userProfile.activityLevel)}
@@ -173,7 +165,6 @@ function createAnalysisPrompt(
   const mealsInfo = meals.length > 0
     ? `
 【食事記録サマリー】
-• 期間: ${analysisType === 'daily' ? '1日' : '過去7日間'}
 • 総摂取カロリー: ${Math.round(mealSummary.calories)}kcal
 • 総タンパク質: ${Math.round(mealSummary.protein)}g
 • 総脂質: ${Math.round(mealSummary.fat)}g
@@ -192,20 +183,13 @@ ${items}`;
 }).join('\n\n')}`
     : '（食事記録なし）';
 
-  // 分析タイプに応じたプロンプト内容
-  const analysisInstructions = analysisType === 'daily'
-    ? '上記の本日の食事記録について、詳細な栄養分析とアドバイスを提供してください。'
-    : '上記の週間の食事記録について、全体的な栄養バランスのパターンや傾向を分析し、改善のためのアドバイスを提供してください。';
-
   // 最終的なプロンプト
   return `
-以下の情報に基づいて、詳細な栄養分析とアドバイスを提供してください。
+以下は本日の食事記録です。提供した情報に基づいて、詳細な栄養分析とアドバイスを提供してください。
 
 ${profileInfo}
 
-${mealsInfo}
-
-${analysisInstructions}`;
+${mealsInfo}`;
 }
 
 /**

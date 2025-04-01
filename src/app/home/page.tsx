@@ -5,6 +5,9 @@ import { MealHistory } from '../components/MealHistory';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
+/**
+ * ホームページ（ダッシュボード）
+ */
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -20,12 +23,14 @@ export default function Home() {
           </Link>
         </div>
 
+        {/* 栄養摂取状況 */}
         <div className="grid grid-cols-1 gap-8">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">栄養摂取状況</h2>
             <DashboardCharts />
           </div>
 
+          {/* 食事記録 */}  
           <div>
             <MealHistory />
           </div>

@@ -1,10 +1,18 @@
 import { z } from 'zod';
 
-// Gender (性別)
+/**
+ * 性別の列挙型
+ */
 export const GenderEnum = z.enum(['male', 'female', 'other']);
+
+/**
+ * 性別の型
+ */
 export type Gender = z.infer<typeof GenderEnum>;
 
-// Activity Level (活動レベル)
+/**
+ * 活動レベルの列挙型
+ */
 export const ActivityLevelEnum = z.enum([
   'sedentary',           // 座り仕事が多い
   'lightly_active',      // 軽い運動をする
@@ -14,15 +22,23 @@ export const ActivityLevelEnum = z.enum([
 ]);
 export type ActivityLevel = z.infer<typeof ActivityLevelEnum>;
 
-// Goal (目標)
+/**
+ * 目標の列挙型
+ */
 export const GoalEnum = z.enum([
   'lose_weight',       // 減量
   'maintain_weight',   // 現状維持
   'gain_weight'        // 増量
 ]);
+
+/**
+ * 目標の型
+ */
 export type Goal = z.infer<typeof GoalEnum>;
 
-// ユーザープロフィールのバリデーションスキーマ
+/**
+ * ユーザープロフィールのバリデーションスキーマ
+ */
 export const userProfileSchema = z.object({
   gender: GenderEnum.optional(),
   birthDate: z.string().optional().nullable(),
@@ -36,9 +52,14 @@ export const userProfileSchema = z.object({
   targetCarbs: z.number().int().min(0, '目標炭水化物は0以上を入力してください').optional().nullable(),
 });
 
+/**
+ * ユーザープロフィールの型
+ */
 export type UserProfileFormData = z.infer<typeof userProfileSchema>;
 
-// データベースのユーザープロファイル型
+/**
+ * データベースのユーザープロファイル型
+ */
 export interface UserProfile {
   id: string;
   createdAt: string;
@@ -55,13 +76,3 @@ export interface UserProfile {
   targetCarbs: number | null;
   userId: string;
 }
-
-// データベースのユーザー型
-export interface User {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  email: string;
-  name: string | null;
-  profile: UserProfile | null;
-} 

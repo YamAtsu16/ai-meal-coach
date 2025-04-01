@@ -3,32 +3,29 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { FireIcon, ChartBarIcon, ClockIcon, FlagIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
-import type { DatabaseMealRecord } from '@/types';
-import type { UserProfileFormData } from '@/types/user'; 
+import { DatabaseMealRecord, UserProfileFormData } from '@/types';
+import { MEAL_TYPE_LABELS } from '@/constants';
 import Link from 'next/link';
-
-/**
- * 食事記録の種類のラベル
- */
-const MEAL_TYPE_LABELS = {
-  breakfast: '朝食',
-  lunch: '昼食',
-  dinner: '夕食',
-  snack: '間食'
-} as const;
 
 /**
  * ダッシュボードのグラフ
  * @returns ダッシュボードのグラフ
  */
 export function DashboardCharts() {
+  /** 食事記録 */
   const [meals, setMeals] = useState<DatabaseMealRecord[]>([]);
+  /** 選択された日付 */
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(true);
+  /** エラー */
   const [error, setError] = useState<string | null>(null);
+  /** ユーザープロフィール */
   const [userProfile, setUserProfile] = useState<UserProfileFormData | null>(null);
 
-  // 食事データの取得
+  /**
+   * 食事データの取得
+   */
   const fetchMeals = async () => {
     try {
       setIsLoading(true);
@@ -63,7 +60,9 @@ export function DashboardCharts() {
     }
   };
 
-  // ユーザープロフィールの取得
+  /**
+   * ユーザープロフィールの取得
+   */
   const fetchUserProfile = async () => {
     try {
       const response = await fetch('/api/profile', {
@@ -82,7 +81,9 @@ export function DashboardCharts() {
     }
   };
 
-  // 食事記録の削除ハンドラー
+  /**
+   * 食事記録の削除ハンドラー
+   */
   const handleDeleteMeal = async (mealId: string) => {
     if (!confirm('この食事記録を削除してもよろしいですか？')) {
       return;
@@ -112,13 +113,17 @@ export function DashboardCharts() {
     }
   };
 
-  // 初回ロード時にデータを取得
+  /**
+   * 初回ロード時にデータを取得
+   */
   useEffect(() => {
     fetchMeals();
     fetchUserProfile();
   }, []);
 
-  // 定期的にデータを更新 (30秒ごと)
+  /**
+   * 定期的にデータを更新 (30秒ごと)
+   */
   useEffect(() => {
     const intervalId = setInterval(() => {
       fetchMeals();
@@ -127,7 +132,9 @@ export function DashboardCharts() {
     return () => clearInterval(intervalId);
   }, []);
 
-  // 選択された日付の食事記録をフィルタリング
+  /**
+   * 選択された日付の食事記録をフィルタリング
+   */
   const selectedDateMeals = meals.filter(meal => {
     const mealDate = new Date(meal.date);
     mealDate.setHours(0, 0, 0, 0);
@@ -138,7 +145,9 @@ export function DashboardCharts() {
     return mealDate.getTime() === compareDate.getTime();
   });
 
-  // 選択された日付の総栄養価を計算
+  /**
+   * 選択された日付の総栄養価を計算
+   */
   const totalNutrition = selectedDateMeals.reduce((acc, meal) => {
     const mealTotal = meal.items?.reduce((itemAcc, item) => ({
       kcal: itemAcc.kcal + (item.totalCalories || 0),
@@ -155,14 +164,18 @@ export function DashboardCharts() {
     };
   }, { kcal: 0, protein: 0, fat: 0, carbs: 0 });
 
-  // 栄養バランスのデータを計算
+  /**
+   * 栄養バランスのデータを計算
+   */
   const nutritionData = [
     { name: 'タンパク質', value: totalNutrition.protein * 4, color: '#3B82F6' },
     { name: '脂質', value: totalNutrition.fat * 9, color: '#EF4444' },
     { name: '炭水化物', value: totalNutrition.carbs * 4, color: '#10B981' },
   ];
 
-  // 目標との比較データ
+  /**
+   * 目標との比較データ
+   */
   const calorieComparisonData = [
     { 
       name: 'カロリー',
@@ -171,6 +184,9 @@ export function DashboardCharts() {
     }
   ];
 
+  /**
+   * 栄養素比較データ
+   */
   const nutrientComparisonData = [
     { 
       name: 'タンパク質',
@@ -189,27 +205,40 @@ export function DashboardCharts() {
     }
   ];
 
-  // 総カロリーが0の場合、円グラフの表示を調整
+  /**
+   * 総カロリーが0の場合、円グラフの表示を調整
+   */
   const pieData = totalNutrition.kcal > 0 
     ? nutritionData 
     : nutritionData.map(item => ({ ...item, value: item.name === 'タンパク質' ? 1 : 0 }));
 
+  /**
+   * データを更新
+   */
   const handleRefresh = () => {
     fetchMeals();
     fetchUserProfile();
   };
 
+  /**
+   * 日付を変更
+   */
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(e.target.value);
   };
 
-  // 選択できる日付の範囲を設定（過去1ヶ月から今日まで）
+  /**
+   * 選択できる日付の範囲を設定（過去1ヶ月から今日まで）
+   */
   const getMinDate = () => {
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
     return date.toISOString().split('T')[0];
   };
 
+  /**
+   * 選択できる日付の範囲を設定（過去1ヶ月から今日まで）
+   */
   const getMaxDate = () => {
     return new Date().toISOString().split('T')[0];
   };
@@ -247,7 +276,9 @@ export function DashboardCharts() {
     );
   }
 
-  // 目標が設定されているかどうかを確認
+  /**
+   * 目標が設定されているかどうかを確認
+   */
   const hasTargets = Boolean(
     userProfile?.targetCalories || 
     userProfile?.targetProtein || 

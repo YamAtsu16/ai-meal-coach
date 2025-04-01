@@ -16,12 +16,20 @@ interface FoodSearchProps {
  * @param onSelect 選択時のコールバック関数
  */
 export function FoodSearch({ onSelect }: FoodSearchProps) {
+  /** 検索クエリ */
   const [query, setQuery] = useState('');
+  /** 検索結果 */
   const [results, setResults] = useState<FoodSearchResult[]>([]);
+  /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(false);
+  /** エラー */
   const [error, setError] = useState<string | null>(null);
+  /** 検索コンテナの参照 */
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * クリックされた場所が検索コンテナの外にある場合、検索結果をクリア
+   */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
@@ -35,6 +43,9 @@ export function FoodSearch({ onSelect }: FoodSearchProps) {
     };
   }, []);
 
+  /**
+   * 食品を検索
+   */
   const searchFood = async () => {
     if (!query.trim()) return;
 
@@ -56,6 +67,9 @@ export function FoodSearch({ onSelect }: FoodSearchProps) {
     }
   };
 
+  /**
+   * 食品を選択
+   */
   const handleSelect = (food: FoodSearchResult) => {
     onSelect(food);
     // 選択後にリセット

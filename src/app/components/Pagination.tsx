@@ -20,12 +20,16 @@ interface PaginationProps {
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
   
-  // 表示するページ番号を制限（現在のページの前後2ページまで）
+  /**
+   * 表示するページ番号を制限（現在のページの前後2ページまで）
+   */
   const visiblePages = pages.filter(page => {
     return Math.abs(page - currentPage) <= 2 || page === 1 || page === totalPages;
   });
 
-  // 省略記号（...）を追加するべき位置を特定
+  /**
+   * 省略記号（...）を追加するべき位置を特定
+   */
   const pagesWithEllipsis = visiblePages.reduce((acc: (number | string)[], page, i) => {
     if (i > 0) {
       const prevPage = visiblePages[i - 1];

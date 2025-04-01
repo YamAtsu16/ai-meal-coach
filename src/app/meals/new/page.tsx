@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
+/**
+ * 新規食事記録ページ
+ */
 export default function NewMealRecordPage() {
   const router = useRouter();
 

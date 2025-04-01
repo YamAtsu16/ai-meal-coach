@@ -3,8 +3,14 @@
 import { useEffect, useState } from 'react';
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
+/**
+ * トーストの型
+ */
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
+/**
+ * トーストのプロパティ
+ */
 interface ToastProps {
   message: string;
   type: ToastType;
@@ -12,6 +18,9 @@ interface ToastProps {
   onClose?: () => void;
 }
 
+/**
+ * トーストのスタイル
+ */
 const TOAST_STYLES = {
   success: {
     bg: 'bg-green-50',
@@ -43,6 +52,13 @@ const TOAST_STYLES = {
   },
 };
 
+/**
+ * トースト
+ * @param message メッセージ
+ * @param type 型
+ * @param duration 持続時間
+ * @param onClose 閉じる
+ */
 export function Toast({ 
   message, 
   type = 'success', 
@@ -52,6 +68,7 @@ export function Toast({
   const [isVisible, setIsVisible] = useState(true);
   const { bg, border, text, icon: Icon, iconColor } = TOAST_STYLES[type];
 
+  // トーストが表示されている時間が経過したらトーストを閉じる
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
@@ -86,55 +103,3 @@ export function Toast({
     </div>
   );
 }
-
-// トーストを表示するためのグローバルなコンテキスト
-import { createContext, useContext, ReactNode } from 'react';
-
-interface ToastContextProps {
-  showToast: (message: string, type: ToastType, duration?: number) => void;
-}
-
-const ToastContext = createContext<ToastContextProps | undefined>(undefined);
-
-interface ToastProviderProps {
-  children: ReactNode;
-}
-
-export function ToastProvider({ children }: ToastProviderProps) {
-  const [toasts, setToasts] = useState<Array<{ id: number; message: string; type: ToastType; duration?: number }>>([]);
-  let nextId = 0;
-
-  const showToast = (message: string, type: ToastType, duration = 3000) => {
-    const id = nextId++;
-    setToasts(prev => [...prev, { id, message, type, duration }]);
-  };
-
-  const handleClose = (id: number) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
-
-  return (
-    <ToastContext.Provider value={{ showToast }}>
-      {children}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {toasts.map(toast => (
-          <Toast 
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            duration={toast.duration}
-            onClose={() => handleClose(toast.id)}
-          />
-        ))}
-      </div>
-    </ToastContext.Provider>
-  );
-}
-
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (context === undefined) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
-}; 

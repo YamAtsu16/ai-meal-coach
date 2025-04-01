@@ -2,16 +2,22 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Navigation } from './components/Navigation';
-import Provider from './Provider';
-import { ToastProvider } from '@/components/Toast';
+import { AuthProvider, ToastProvider } from '@/provider';
 
+/** フォント */
 const inter = Inter({ subsets: ['latin'] });
 
+/** メタデータ */
 export const metadata: Metadata = {
   title: 'AI食事管理アプリ',
-  description: 'AIを活用して食事の栄養バランスを分析し、健康的な食生活をサポートします。',
+  description: 'AIを活用して食事の栄養バランスを分析し、あなたの目的に合った健康的な食生活をサポートします。',
 };
 
+/**
+ * ルートレイアウト
+ * @param children 子要素
+ * @returns ルートレイアウト
+ */
 export default function RootLayout({
   children,
 }: {
@@ -20,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={inter.className}>
-        <Provider>
+        <AuthProvider>
           <ToastProvider>
             <Navigation />
             <div className="min-h-screen pt-16 pb-20">
@@ -29,7 +35,7 @@ export default function RootLayout({
               </main>
             </div>
           </ToastProvider>
-        </Provider>
+        </AuthProvider>
       </body>
     </html>
   );

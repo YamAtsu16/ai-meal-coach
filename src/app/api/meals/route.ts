@@ -2,33 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { getToken } from 'next-auth/jwt';
 import { ObjectId } from 'mongodb';
-
-/**
- * 食品の入力型
- */
-interface FoodItemInput {
-  name: string;
-  quantity: number;
-  unit: string;
-  caloriesPerHundredGrams: number;
-  proteinPerHundredGrams: number;
-  fatPerHundredGrams: number;
-  carbsPerHundredGrams: number;
-  totalCalories: number;
-  totalProtein: number;
-  totalFat: number;
-  totalCarbs: number;
-}
-
-/**
- * 食事記録の入力型
- */
-interface MealRecordInput {
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  date: string;
-  items: FoodItemInput[];
-  photoUrl: string | null;
-}
+import { MealRecordInput } from '@/types';
 
 /**
  * 食事記録の取得
@@ -73,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     const userId = token.id;
     const body = await request.json();
-    const { mealType, date, items, photoUrl } = body as MealRecordInput;
+    const { mealType, date, items } = body as MealRecordInput;
 
     const { db } = await connectToDatabase();
     
@@ -81,7 +55,6 @@ export async function POST(request: NextRequest) {
       userId: userId,
       mealType,
       date: new Date(date),
-      photoUrl,
       items,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -114,7 +87,7 @@ export async function PUT(request: NextRequest) {
 
     const userId = token.id;
     const data = await request.json();
-    const { id, mealType, date, items, photoUrl } = data;
+    const { id, mealType, date, items } = data;
 
     const { db } = await connectToDatabase();
     
@@ -125,7 +98,6 @@ export async function PUT(request: NextRequest) {
         $set: {
           mealType,
           date: new Date(date),
-          photoUrl,
           items,
           updatedAt: new Date(),
         }

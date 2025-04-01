@@ -3,29 +3,21 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { UserProfileFormData, userProfileSchema } from '@/types/user';
+import { UserProfileFormData, userProfileSchema } from '@/types/features/profile/types';
+import { useToast } from '@/provider';
 
+/**
+ * プロフィールページ
+ */
 export default function ProfilePage() {
-  /**
-   * ローディング状態
-   */
+  /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(false);
-  /**
-   * プロフィールデータのローディング状態
-   */
+  /** プロフィールデータのローディング状態 */
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  /**
-   * プロフィールデータの保存状態
-   */
-  const [isSaved, setIsSaved] = useState(false);
-  /**
-   * エラーメッセージ
-   */
-  const [error, setError] = useState<string | null>(null);
+  /** トースト表示 */
+  const { showToast } = useToast();
   
-  /**
-   * フォームのコントロール
-   */
+  /** フォームのコントロール */
   const { register, handleSubmit, formState: { errors }, reset } = useForm<UserProfileFormData>({
     resolver: zodResolver(userProfileSchema),
     defaultValues: {
@@ -56,12 +48,9 @@ export default function ProfilePage() {
         if (result.success && result.data) {
           // フォームの初期値を設定
           reset(result.data);
-        } else {
-          setError('プロフィールデータの取得に失敗しました');
         }
       } catch (error) {
         console.error('プロフィールデータの取得エラー:', error);
-        setError('プロフィールデータの取得に失敗しました');
       } finally {
         setIsLoadingProfile(false);
       }
@@ -75,7 +64,6 @@ export default function ProfilePage() {
    */
   const onSubmit = async (data: UserProfileFormData) => {
     setIsLoading(true);
-    setError(null);
     
     try {
       const response = await fetch('/api/profile', {
@@ -85,18 +73,14 @@ export default function ProfilePage() {
         },
         body: JSON.stringify(data),
       });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        setIsSaved(true);
-        setTimeout(() => setIsSaved(false), 3000);
+      if (response.ok) {
+        showToast('プロフィールが保存されました', 'success');
       } else {
-        setError(result.error || 'プロフィールの保存に失敗しました');
+        showToast('プロフィールの保存に失敗しました', 'error');
       }
     } catch (error) {
       console.error('プロフィールの保存に失敗しました', error);
-      setError('プロフィールの保存に失敗しました');
+      showToast('プロフィールの保存に失敗しました', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -118,18 +102,6 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6">プロフィール設定</h1>
-        
-        {isSaved && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            プロフィールが保存されました
-          </div>
-        )}
-        
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
           {/* 基本情報セクション */}

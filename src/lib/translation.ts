@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// 翻訳結果をキャッシュするためのオブジェクト
-// メモリキャッシュとして実装
+/**
+ * 翻訳キャッシュの型定義
+ */
 interface TranslationCache {
   [key: string]: {
     translated: string;
@@ -9,10 +10,19 @@ interface TranslationCache {
   };
 }
 
-// 翻訳キャッシュ（サーバー再起動時にリセットされる）
-// 方向ごとにキャッシュを分ける
+/**
+ * キャッシュの有効期限（24時間）
+ */
 const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24時間（ミリ秒）
+
+/**
+ * 日本語から英語への翻訳キャッシュ
+ */
 const jaToEnCache: TranslationCache = {};
+
+/**
+ * 英語から日本語への翻訳キャッシュ
+ */
 const enToJaCache: TranslationCache = {};
 
 /**
@@ -27,8 +37,6 @@ function getFromCache(text: string, cache: TranslationCache): string | null {
 
   // キャッシュが存在し、有効期限内であれば使用
   if (cacheEntry && now - cacheEntry.timestamp < CACHE_EXPIRY) {
-    // キャッシュヒットをログ
-    console.log(`Translation cache hit: "${text}" -> "${cacheEntry.translated}"`);
     return cacheEntry.translated;
   }
 
@@ -157,80 +165,3 @@ export async function translateToJapanese(text: string): Promise<string> {
     return text; // エラー時は元のテキストを返す
   }
 }
-
-/**
- * 複数のテキストを一括で日本語に翻訳する
- * @param texts 翻訳対象のテキスト配列
- * @returns 日本語に翻訳されたテキスト配列
- */
-export async function translateMultipleToJapanese(texts: string[]): Promise<string[]> {
-  try {
-    // 空の配列や環境変数がない場合はそのまま返す
-    if (!texts.length || !process.env.DEEPL_API_KEY) {
-      return texts;
-    }
-
-    // 翻訳が必要ないテキストをフィルタリングし、すでにキャッシュにあるものを除外
-    const uncachedTexts: string[] = [];
-    const cachedResults: { [key: string]: string } = {};
-    
-    texts.forEach(text => {
-      if (!text || text.trim() === '' || /^[\d\s.]+$/.test(text)) {
-        // 翻訳不要なテキスト
-        cachedResults[text] = text;
-      } else {
-        // キャッシュから取得を試みる
-        const cachedTranslation = getFromCache(text, enToJaCache);
-        if (cachedTranslation !== null) {
-          cachedResults[text] = cachedTranslation;
-        } else {
-          uncachedTexts.push(text);
-        }
-      }
-    });
-
-    // 未キャッシュのテキストがなければ結果を返す
-    if (uncachedTexts.length === 0) {
-      return texts.map(text => cachedResults[text] || text);
-    }
-
-    // DeepL APIで未キャッシュのテキストを一括翻訳
-    const response = await axios.post(
-      'https://api-free.deepl.com/v2/translate',
-      {
-        text: uncachedTexts,
-        target_lang: 'JA',
-        source_lang: 'EN'
-      },
-      {
-        headers: {
-          'Authorization': `DeepL-Auth-Key ${process.env.DEEPL_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    
-    // 翻訳結果を処理
-    if (response.data && response.data.translations && response.data.translations.length > 0) {
-      // 翻訳結果をキャッシュに保存
-      uncachedTexts.forEach((text, index) => {
-        if (response.data.translations[index]) {
-          const translated = response.data.translations[index].text;
-          saveToCache(text, translated, enToJaCache);
-          cachedResults[text] = translated;
-        } else {
-          cachedResults[text] = text;
-        }
-      });
-      
-      // 元の順序で結果を返す
-      return texts.map(text => cachedResults[text] || text);
-    } else {
-      console.error('DeepL APIから翻訳結果が返されませんでした', response.data);
-      return texts;
-    }
-  } catch (error) {
-    console.error('一括翻訳エラー:', error);
-    return texts;
-  }
-} 

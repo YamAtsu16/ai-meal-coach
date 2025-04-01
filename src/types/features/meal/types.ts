@@ -1,5 +1,14 @@
 import { z } from 'zod';
-import { MealType, Unit } from '../../common/base';
+
+/**
+ * 共通の単位タイプ
+ */
+export type Unit = 'g' | 'ml' | '個' | '杯';
+
+/**
+ * 食事の種類
+ */
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 /**
  * 栄養素のZodスキーマ
@@ -36,7 +45,6 @@ export const mealRecordSchema = z.object({
   mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack']),
   items: z.array(foodItemSchema),
   date: z.string().optional(),
-  photoUrl: z.string().nullable().optional()
 });
 
 /**
@@ -55,7 +63,7 @@ export type FoodItem = z.infer<typeof foodItemSchema>;
 export type MealRecord = z.infer<typeof mealRecordSchema>;
 
 /**
- * データベースモデル
+ * 食品情報のデータベースモデル
  */
 export interface DatabaseFoodItem {
   id: string;
@@ -79,7 +87,6 @@ export interface DatabaseMealRecord {
   id: string;
   mealType: MealType;
   date: string;
-  photoUrl: string | null;
   items: DatabaseFoodItem[];
 }
 
@@ -89,32 +96,6 @@ export interface DatabaseMealRecord {
 export type FoodItemInput = Omit<DatabaseFoodItem, 'id'>;
 
 /**
- * コンポーネントProps
+ * 食事記録の入力型
  */
-export interface MealRecordFormProps {
-  initialData?: {
-    id: string;
-    mealType: MealType;
-    date: string;
-    photoUrl: string | null;
-    items: DatabaseFoodItem[];
-  };
-  onSuccess?: () => void;
-}
-
-/**
- * 編集ページのProps
- */
-export interface EditMealRecordPageProps {
-  params: Promise<{
-    id: string;
-  }>;
-}
-
-/**
- * 食事リストのProps
- */ 
-export interface MealListProps {
-  meals: DatabaseMealRecord[];
-  onDelete: (id: string) => void;
-} 
+export type MealRecordInput = Omit<DatabaseMealRecord, 'id'>;

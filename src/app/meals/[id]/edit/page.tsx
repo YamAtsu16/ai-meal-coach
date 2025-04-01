@@ -5,28 +5,30 @@ import { useRouter } from 'next/navigation';
 import { MealRecordForm } from '@/app/components/MealRecordForm';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import type { EditMealRecordPageProps, DatabaseMealRecord } from '@/types';
+import type { DatabaseMealRecord } from '@/types';
 
+/**
+ * 食事編集ページのProps
+ */
+export interface EditMealRecordPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+/**
+ * 食事編集ページ
+ */
 export default function EditMealRecord({ params }: EditMealRecordPageProps) {
-  /**
-   * ルーティング
-   */
+  /** ルーティング */
   const router = useRouter();
-  /**
-   * 食事記録
-   */
+  /** 食事記録 */
   const [meal, setMeal] = useState<DatabaseMealRecord | null>(null);
-  /**
-   * ローディング状態
-   */
+  /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(true);
-  /**
-   * エラーメッセージ
-   */
+  /** エラーメッセージ */
   const [error, setError] = useState<string | null>(null);
-  /**
-   * クエリパラメータ
-   */
+  /** クエリパラメータ */
   const resolvedParams = use(params);
 
   /**

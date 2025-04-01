@@ -4,6 +4,9 @@ import React, { useState } from 'react';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import NutritionAdvice from '../components/NutritionAdvice';
 
+/**
+ * 栄養分析ページ
+ */
 export default function AnalysisPage() {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   

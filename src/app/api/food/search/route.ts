@@ -7,7 +7,7 @@ import type {
   EdamamHint,
   EdamamParsedFood,
   EdamamResponse
-} from '@/types/external';
+} from '@/types';
 import { translateToEnglish, translateToJapanese } from '@/lib/translation';
 
 const EDAMAM_APP_ID = process.env.EDAMAM_APP_ID;
@@ -104,9 +104,7 @@ export async function GET(request: Request) {
       console.log(`翻訳に失敗したため検索をスキップします: "${query}"`);
       return NextResponse.json([]);
     }
-    
-    console.log(`クエリの翻訳: "${query}" -> "${translatedQuery}"`);
-    
+        
     const apiUrl = `${EDAMAM_API_URL}?app_id=${EDAMAM_APP_ID}&app_key=${EDAMAM_APP_KEY}&ingr=${encodeURIComponent(translatedQuery)}`;
     const response = await fetch(apiUrl);
 

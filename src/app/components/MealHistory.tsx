@@ -11,13 +11,20 @@ import type { DatabaseMealRecord } from '@/types';
  * @returns 食事記録履歴コンポーネント
  */
 export function MealHistory() {
+  /** 食事記録 */
   const [meals, setMeals] = useState<DatabaseMealRecord[]>([]);
+  /** 現在の月 */
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(true);
+  /** エラー */
   const [error, setError] = useState<string | null>(null);
+  /** 選択された日付 */
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  // 食事記録を取得
+  /**
+   * 食事記録を取得
+   */
   const fetchMeals = async () => {
     try {
       setIsLoading(true);
@@ -36,12 +43,16 @@ export function MealHistory() {
     }
   };
 
-  // 初回ロード時にデータを取得
+  /**
+   * 初回ロード時にデータを取得
+   */
   useEffect(() => {
     fetchMeals();
   }, []);
 
-  // 月を変更する
+  /**
+   * 月を変更する
+   */
   const changeMonth = (direction: 'prev' | 'next') => {
     setCurrentMonth(prevMonth => {
       const newMonth = new Date(prevMonth);
@@ -54,13 +65,17 @@ export function MealHistory() {
     });
   };
 
-  // 現在の月の日付を取得
+  /**
+   * 現在の月の日付を取得
+   */
   const daysInMonth = eachDayOfInterval({
     start: startOfMonth(currentMonth),
     end: endOfMonth(currentMonth)
   });
 
-  // 指定した日付の食事記録を取得
+  /**
+   * 指定した日付の食事記録を取得
+   */
   const getMealsForDate = (date: Date) => {
     return meals.filter(meal => {
       const mealDate = new Date(meal.date);
@@ -68,7 +83,9 @@ export function MealHistory() {
     });
   };
 
-  // 指定した日付の栄養素を計算
+  /**
+   * 指定した日付の栄養素を計算
+   */
   const calculateNutritionForDate = (date: Date) => {
     const mealsForDate = getMealsForDate(date);
     return mealsForDate.reduce((acc, meal) => {

@@ -24,6 +24,11 @@ const publicPaths = [
   '/api/auth',
 ];
 
+/**
+ * ミドルウェア
+ * @param request リクエスト
+ * @returns レスポンス
+ */
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   

@@ -3,45 +3,23 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { RegisterFormData, registerSchema } from '@/types';
 
 /**
- * 登録フォームのスキーマ
+ * 登録ページ
  */
-const registerSchema = z.object({
-  name: z.string().min(1, '名前を入力してください'),
-  email: z.string().email('有効なメールアドレスを入力してください'),
-  password: z.string().min(8, 'パスワードは8文字以上で入力してください'),
-  confirmPassword: z.string().min(1, 'パスワード（確認）を入力してください'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'パスワードが一致しません',
-  path: ['confirmPassword'],
-});
-
-type RegisterFormData = z.infer<typeof registerSchema>;
-
 export default function RegisterPage() {
-  /**
-   * ルーティング
-   */
+  /** ルーティング */
   const router = useRouter();
-  /**
-   * ローディング状態
-   */
+  /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(false);
-  /**
-   * エラーメッセージ
-   */
+  /** エラーメッセージ */
   const [registerError, setRegisterError] = useState<string | null>(null);
-  /**
-   * 登録成功メッセージ
-   */
+  /** 登録成功メッセージ */
   const [registerSuccess, setRegisterSuccess] = useState(false);
-  /**
-   * フォームのコントロール
-   */
+  /** フォームのコントロール */
   const {
     register,
     handleSubmit,

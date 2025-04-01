@@ -21,7 +21,9 @@ export function Navigation() {
   const { status } = useSession();
   const isAuthenticated = status === 'authenticated';
 
-  // アクティブなリンクかどうかを判定
+  /**
+   * アクティブなリンクかどうかを判定
+   */
   const isActive = (path: string) => {
     if (path === '/') {
       return pathname === '/';
@@ -29,6 +31,9 @@ export function Navigation() {
     return pathname === path || pathname.startsWith(path + '/');
   };
 
+  /**
+   * ログアウトする
+   */
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' });
   };
