@@ -121,7 +121,7 @@ export default function EditMealRecord({ params }: EditMealRecordPageProps) {
             {meal && (
               <MealRecordForm
                 initialData={meal}
-                onSuccess={() => router.push('/')}
+                onSuccess={() => router.push('/home')}
               />
             )}
           </div>

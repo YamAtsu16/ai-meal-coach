@@ -31,7 +31,7 @@ export default function NewMealRecordPage() {
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <MealRecordForm
               onSuccess={() => {
-                router.push('/');
+                router.push('/home');
               }}
             />
           </div>
