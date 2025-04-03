@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UserProfileFormData } from '@/types/features/profile/types';
-import { connectToDatabase } from '@/lib/mongodb';
+import { UserProfileFormData } from '@/types/features/profile/type';
+import { connectToDatabase } from '@/utils/mongodb';
 import { getServerSession } from 'next-auth';
 
 /**

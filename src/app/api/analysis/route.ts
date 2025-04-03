@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzeMeals } from '@/lib/openai';
-import type { DatabaseMealRecord } from '@/types';
-import type { UserProfileFormData } from '@/types/features/profile/types';
 import { getToken } from 'next-auth/jwt';
+import { analyzeMeals } from '@/utils/openai';
+import type { UserProfileFormData } from '@/types/features/profile/type';
+import { DatabaseMealRecord } from '@/types/features/meal/type';
 
 /**
  * 食事分析を行うAPIエンドポイント

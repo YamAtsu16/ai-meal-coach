@@ -1,9 +1,9 @@
 'use client';
 
-import { MealRecordForm } from '@/app/components/MealRecordForm';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { MealRecordForm } from '@/components/features/meal/MealRecordForm';
 
 /**
  * 新規食事記録ページ

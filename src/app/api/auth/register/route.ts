@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import { connectToDatabase } from '@/utils/mongodb';
 import { hash } from 'bcryptjs';
-import { registerSchema } from '@/types';
+import { registerSchema } from '@/types/features/auth/type';
 
 /**
  * ユーザー登録API

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { FireIcon, ChartBarIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
-import type { DatabaseMealRecord } from '@/types';
+import { DatabaseMealRecord } from '@/types/features/meal/type';
 
 /**
  * 食事記録履歴コンポーネント

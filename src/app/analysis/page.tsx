@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ClockIcon } from '@heroicons/react/24/outline';
-import NutritionAdvice from '../components/NutritionAdvice';
+import NutritionAdvice from '@/components/features/analysis/NutritionAdvice';
 
 /**
  * 栄養分析ページ

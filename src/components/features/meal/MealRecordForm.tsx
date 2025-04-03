@@ -5,8 +5,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { FoodSearch } from './FoodSearch';
 import { useState, useEffect } from 'react';
-import { useToast } from '@/provider';
-import { DatabaseFoodItem, MealRecord, mealRecordSchema, FoodItem, FoodSearchResult } from '@/types';
+import { useToast } from '@/providers';
+import { DatabaseFoodItem, FoodItem, mealRecordSchema } from '@/types/features/meal/type';
+import { FoodSearchResult } from '@/types/features/food/type';
+import { MealRecord } from '@/types/features/meal/type';
 
 /**
  * 食事記録フォームのProps

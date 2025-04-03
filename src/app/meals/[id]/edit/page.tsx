@@ -2,10 +2,10 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { MealRecordForm } from '@/app/components/MealRecordForm';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import type { DatabaseMealRecord } from '@/types';
+import { MealRecordForm } from '@/components/features/meal/MealRecordForm';
+import { DatabaseMealRecord } from '@/types/features/meal/type';
 
 /**
  * 食事編集ページのProps

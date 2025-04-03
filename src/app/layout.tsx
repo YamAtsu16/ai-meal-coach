@@ -1,8 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { Navigation } from './components/Navigation';
-import { AuthProvider, ToastProvider } from '@/provider';
+import { AuthProvider, ToastProvider } from '@/providers';
+import { Navigation } from '@/components/common/layout/Navigation';
 
 /** フォント */
 const inter = Inter({ subsets: ['latin'] });

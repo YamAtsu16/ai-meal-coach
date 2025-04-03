@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import type { FoodSearchResult } from '@/types';
+import { FoodSearchResult } from '@/types/external/type';
 
 /**
  * 食品検索コンポーネントのProps

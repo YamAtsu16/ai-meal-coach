@@ -3,9 +3,10 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { FireIcon, ChartBarIcon, ClockIcon, FlagIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
-import { DatabaseMealRecord, UserProfileFormData } from '@/types';
-import { MEAL_TYPE_LABELS } from '@/constants';
 import Link from 'next/link';
+import { MEAL_TYPE_LABELS } from '@/constants/features/meal/constant';
+import { DatabaseMealRecord } from '@/types/features/meal/type';
+import { UserProfileFormData } from '@/types/features/profile/type';
 
 /**
  * ダッシュボードのグラフ

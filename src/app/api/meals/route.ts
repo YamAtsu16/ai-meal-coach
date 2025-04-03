@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import { connectToDatabase } from '@/utils/mongodb';
 import { getToken } from 'next-auth/jwt';
 import { ObjectId } from 'mongodb';
-import { MealRecordInput } from '@/types';
+import { MealRecordInput } from '@/types/features/meal/type';
 
 /**
  * 食事記録の取得

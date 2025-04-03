@@ -1,9 +1,9 @@
 'use client';
 
-import { DashboardCharts } from '../components/DashboardCharts';
-import { MealHistory } from '../components/MealHistory';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { DashboardCharts } from '@/components/features/meal/DashboardCharts';
+import { MealHistory } from '@/components/features/meal/MealHistory';
 
 /**
  * ホームページ（ダッシュボード）

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { UserProfileFormData, userProfileSchema } from '@/types/features/profile/types';
-import { useToast } from '@/provider';
+import { UserProfileFormData, userProfileSchema } from '@/types/features/profile/type';
+import { useToast } from '@/providers';
 
 /**
  * プロフィールページ
