@@ -1,11 +1,11 @@
 'use client';
 
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-import { FireIcon, ChartBarIcon, ClockIcon, FlagIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { MEAL_TYPE_LABELS } from '@/constants/features/meal/constant';
-import { DatabaseMealRecord, UserProfileFormData } from '@/types';
+import { FireIcon, ChartBarIcon, ClockIcon, FlagIcon } from '@heroicons/react/24/outline';
+import { DatabaseMealRecord, UserProfileFormData, Nutrition } from '@/types';
+import { NutritionBalanceChart } from './NutritionBalanceChart';
+import { GoalComparisonCharts } from './GoalComparisonCharts';
+import { MealRecordList } from './MealRecordList';
 
 /**
  * ダッシュボードのグラフ
@@ -148,7 +148,7 @@ export function DashboardCharts() {
   /**
    * 選択された日付の総栄養価を計算
    */
-  const totalNutrition = selectedDateMeals.reduce((acc, meal) => {
+  const totalNutrition: Nutrition = selectedDateMeals.reduce((acc, meal) => {
     const mealTotal = meal.items?.reduce((itemAcc, item) => ({
       kcal: itemAcc.kcal + (item.totalCalories || 0),
       protein: itemAcc.protein + (item.totalProtein || 0),
@@ -163,54 +163,6 @@ export function DashboardCharts() {
       carbs: acc.carbs + mealTotal.carbs,
     };
   }, { kcal: 0, protein: 0, fat: 0, carbs: 0 });
-
-  /**
-   * 栄養バランスのデータを計算
-   */
-  const nutritionData = [
-    { name: 'タンパク質', value: totalNutrition.protein * 4, color: '#3B82F6' },
-    { name: '脂質', value: totalNutrition.fat * 9, color: '#EF4444' },
-    { name: '炭水化物', value: totalNutrition.carbs * 4, color: '#10B981' },
-  ];
-
-  /**
-   * 目標との比較データ
-   */
-  const calorieComparisonData = [
-    { 
-      name: 'カロリー',
-      現在: Math.round(totalNutrition.kcal),
-      目標: userProfile?.targetCalories || 0
-    }
-  ];
-
-  /**
-   * 栄養素比較データ
-   */
-  const nutrientComparisonData = [
-    { 
-      name: 'タンパク質',
-      現在: Math.round(totalNutrition.protein),
-      目標: userProfile?.targetProtein || 0
-    },
-    { 
-      name: '脂質',
-      現在: Math.round(totalNutrition.fat),
-      目標: userProfile?.targetFat || 0
-    },
-    { 
-      name: '炭水化物',
-      現在: Math.round(totalNutrition.carbs),
-      目標: userProfile?.targetCarbs || 0
-    }
-  ];
-
-  /**
-   * 総カロリーが0の場合、円グラフの表示を調整
-   */
-  const pieData = totalNutrition.kcal > 0 
-    ? nutritionData 
-    : nutritionData.map(item => ({ ...item, value: item.name === 'タンパク質' ? 1 : 0 }));
 
   /**
    * データを更新
@@ -338,58 +290,7 @@ export function DashboardCharts() {
               栄養バランス
             </h2>
           </div>
-          {totalNutrition.kcal === 0 ? (
-            <div className="flex justify-center items-center h-[200px] text-gray-500">
-              データがありません
-            </div>
-          ) : (
-            <div className="flex flex-col lg:flex-row items-center gap-6">
-              <div className="w-full lg:w-1/2 h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`${Math.round(Number(value))} kcal`, '']} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="w-full lg:w-1/2">
-                <div className="space-y-4">
-                  {nutritionData.map((item, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                      <div className="flex-1">
-                        <div className="flex justify-between items-baseline">
-                          <span className="text-sm font-medium text-gray-800">{item.name}</span>
-                          <span className="text-sm font-medium text-gray-800">{Math.round(item.value)}kcal</span>
-                        </div>
-                        <div className="mt-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${totalNutrition.kcal > 0 ? (item.value / totalNutrition.kcal) * 100 : 0}%`,
-                              backgroundColor: item.color
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          <NutritionBalanceChart totalNutrition={totalNutrition} />
         </div>
       </div>
 
@@ -402,65 +303,7 @@ export function DashboardCharts() {
               目標との比較
             </h2>
           </div>
-          
-          {(userProfile?.targetCalories || userProfile?.targetProtein || userProfile?.targetFat || userProfile?.targetCarbs) ? (
-            <div className="space-y-8">
-              {/* カロリー比較グラフ */}
-              {userProfile?.targetCalories ? (
-                <div>
-                  <h3 className="text-lg font-medium text-gray-800 mb-3">カロリー</h3>
-                  <div className="h-[200px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={calorieComparisonData}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="現在" fill="#3B82F6" />
-                        <Bar dataKey="目標" fill="#10B981" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              ) : null}
-
-              {/* 栄養素比較グラフ */}
-              {(userProfile?.targetProtein || userProfile?.targetFat || userProfile?.targetCarbs) ? (
-                <div>
-                  <h3 className="text-lg font-medium text-gray-800 mb-3">栄養素</h3>
-                  <div className="h-[200px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={nutrientComparisonData.filter(item => item.目標 > 0)}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="現在" fill="#3B82F6" />
-                        <Bar dataKey="目標" fill="#10B981" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <div className="flex justify-center items-center h-[200px] text-gray-500">
-              <div className="text-center">
-                <p>目標が設定されていません</p>
-                <a href="/profile" className="text-blue-500 hover:underline mt-2 inline-block">
-                  プロフィールページで目標を設定する
-                </a>
-              </div>
-            </div>
-          )}
+          <GoalComparisonCharts totalNutrition={totalNutrition} userProfile={userProfile} />
         </div>
       )}
 
@@ -472,117 +315,10 @@ export function DashboardCharts() {
             {selectedDate === new Date().toISOString().split('T')[0] ? '今日' : selectedDate.replace(/-/g, '/')}の食事記録
           </h2>
         </div>
-        
-        {selectedDateMeals.length === 0 ? (
-          <div className="flex flex-col justify-center items-center h-40 text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mb-2 opacity-50">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
-            </svg>
-            <p className="text-base">食事記録がありません</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 朝食・昼食・夕食・間食に分けて表示 */}
-            {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map(mealType => {
-              const mealsOfType = selectedDateMeals.filter(meal => meal.mealType === mealType);
-              if (mealsOfType.length === 0) return null;
-
-              // 食事タイプごとの合計カロリーを計算
-              const totalCalories = mealsOfType.reduce((total, meal) => {
-                return total + meal.items?.reduce((mealTotal, item) => mealTotal + (item.totalCalories || 0), 0) || 0;
-              }, 0);
-
-              // 食事タイプごとの背景色を設定
-              const getMealTypeColor = (type: string) => {
-                switch(type) {
-                  case 'breakfast': return 'bg-amber-50 border-amber-100';
-                  case 'lunch': return 'bg-emerald-50 border-emerald-100';
-                  case 'dinner': return 'bg-indigo-50 border-indigo-100';
-                  case 'snack': return 'bg-rose-50 border-rose-100';
-                  default: return 'bg-gray-50 border-gray-100';
-                }
-              };
-
-              // 食事タイプごとのテキスト色を設定
-              const getMealTypeTextColor = (type: string) => {
-                switch(type) {
-                  case 'breakfast': return 'text-amber-700';
-                  case 'lunch': return 'text-emerald-700';
-                  case 'dinner': return 'text-indigo-700';
-                  case 'snack': return 'text-rose-700';
-                  default: return 'text-gray-700';
-                }
-              };
-              
-              return (
-                <div key={mealType} className={`rounded-xl border p-0.5 shadow-sm ${getMealTypeColor(mealType)}`}>
-                  <div className="p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className={`flex items-center gap-2 ${getMealTypeTextColor(mealType)} font-medium`}>
-                        <h3 className="text-md">
-                          {MEAL_TYPE_LABELS[mealType]}
-                        </h3>
-                      </div>
-                      <div className={`text-sm font-semibold ${getMealTypeTextColor(mealType)}`}>
-                        {Math.round(totalCalories)} kcal
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 mt-2">
-                      {mealsOfType.map((meal, mealIndex) => (
-                        <div key={`${mealType}-${mealIndex}-${meal.id}`} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                          <div className="divide-y divide-gray-100">
-                            {meal.items?.map((item, itemIndex) => (
-                              <div 
-                                key={`${meal.id}-item-${itemIndex}`} 
-                                className={`flex justify-between py-2 ${itemIndex === 0 ? 'pt-0' : ''} ${itemIndex === meal.items.length - 1 ? 'pb-0' : ''}`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-gray-800">{item.name}</span>
-                                  <span className="text-gray-500 text-sm">{item.quantity}{item.unit}</span>
-                                </div>
-                                <div className="text-gray-700 font-medium">
-                                  {Math.round(item.totalCalories)}kcal
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex justify-end gap-2 mt-3 pt-2 border-t border-gray-100">
-                            <Link 
-                              href={`/meals/${meal.id}/edit`}
-                              className="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-50 transition-colors"
-                            >
-                              <PencilIcon className="w-4 h-4" />
-                            </Link>
-                            <button 
-                              onClick={() => handleDeleteMeal(meal.id)}
-                              className="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-50 transition-colors"
-                            >
-                              <TrashIcon className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        
-        {/* 新規食事記録ボタン */}
-        <div className="mt-6 flex justify-center">
-          <Link 
-            href="/meals/new" 
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            新しい食事を記録
-          </Link>
-        </div>
+        <MealRecordList 
+          selectedDateMeals={selectedDateMeals} 
+          handleDeleteMeal={handleDeleteMeal}
+        />
       </div>
     </div>
   );
