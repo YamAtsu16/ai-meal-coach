@@ -13,19 +13,19 @@ export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 /**
  * 栄養素のZodスキーマ
  */
-export const nutrientsSchema = z.object({
-  per100g: z.object({
-    kcal: z.number(),
-    protein: z.number(),
-    fat: z.number(),
-    carbs: z.number()
-  }),
-  total: z.object({
-    kcal: z.number(),
-    protein: z.number(),
-    fat: z.number(),
-    carbs: z.number()
-  })
+export const nutritionDataSchema = z.object({
+  kcal: z.number(),
+  protein: z.number(),
+  fat: z.number(),
+  carbs: z.number()
+});
+
+/**
+ * 栄養記録のZodスキーマ
+ */
+export const nutrientsRecordSchema = z.object({
+  per100g: nutritionDataSchema,
+  total: nutritionDataSchema
 });
 
 /**
@@ -35,7 +35,7 @@ export const foodItemSchema = z.object({
   name: z.string().min(1, '食品名を入力してください'),
   quantity: z.number().min(0, '0以上の数値を入力してください'),
   unit: z.enum(['g', 'ml', '個', '杯']),
-  nutrients: nutrientsSchema
+  nutrients: nutrientsRecordSchema
 });
 
 /**
@@ -50,7 +50,12 @@ export const mealRecordSchema = z.object({
 /**
  * 栄養素の型
  */
-export type Nutrients = z.infer<typeof nutrientsSchema>;
+export type Nutrition = z.infer<typeof nutritionDataSchema>;
+
+/**
+ * 栄養素記録の型
+ */
+export type NutrientsRecord = z.infer<typeof nutrientsRecordSchema>;
 
 /**
  * 食品の型
