@@ -6,7 +6,7 @@ import { getToken } from 'next-auth/jwt';
  * 保護されたルート
  */
 const protectedPaths = [
-  '/',
+  '/home',
   '/profile',
   '/analysis',
   '/record',

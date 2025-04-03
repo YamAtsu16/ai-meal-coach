@@ -42,7 +42,7 @@ export function Navigation() {
     <nav className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100 md:top-0 md:bottom-auto md:border-t-0 md:border-b w-full">
       <div className="container mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-16">
-          <Link href="/home" className="font-bold text-lg sm:text-xl text-blue-600 whitespace-nowrap">
+          <Link href="/" className="font-bold text-lg sm:text-xl text-blue-600 whitespace-nowrap">
             AI食事コーチ
           </Link>
 
