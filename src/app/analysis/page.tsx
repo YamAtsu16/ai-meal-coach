@@ -1,14 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import NutritionAdvice from '@/components/features/analysis/NutritionAdvice';
+import { useSearchParams } from 'next/navigation';
 
 /**
  * 栄養分析ページ
  */
 export default function AnalysisPage() {
+  const searchParams = useSearchParams();
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  /**
+   * URLから日付パラメータを取得して設定
+   */
+  useEffect(() => {
+    const dateParam = searchParams.get('date');
+    if (dateParam) {
+      setSelectedDate(dateParam);
+    }
+  }, [searchParams]);
   
   /**
    * 選択できる日付の範囲を設定（過去1ヶ月から今日まで）

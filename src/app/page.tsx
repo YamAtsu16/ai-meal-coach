@@ -64,7 +64,9 @@ export default function LandingPage() {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
-              あなたの食事を<span className="text-blue-600">AI</span>がサポート
+              あなたの食事を
+              <br />
+              <span className="text-blue-600">AI</span>がサポート
             </h2>
             <p className="text-xl text-gray-600 mb-8">
               栄養バランスの最適化、目標達成へのアドバイス、食事記録の簡単管理。

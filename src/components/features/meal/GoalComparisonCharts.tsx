@@ -54,6 +54,7 @@ export function GoalComparisonCharts({ totalNutrition, userProfile }: {
    * 栄養素比較データ
    */
   const nutrientComparisonData = [
+    // グラフのラベルを日本語にするためにプロパティを日本語にしている
     { 
       name: 'タンパク質',
       現在: Math.round(totalNutrition.protein),
