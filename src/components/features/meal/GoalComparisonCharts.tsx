@@ -5,6 +5,9 @@ import { UserProfileFormData, Nutrition } from '@/types';
 
 /**
  * 目標比較チャートコンポーネント
+ * @param totalNutrition 総栄養素
+ * @param userProfile ユーザープロフィール
+ * @returns 目標比較チャート
  */
 export function GoalComparisonCharts({ totalNutrition, userProfile }: { 
   totalNutrition: Nutrition,
@@ -20,6 +23,9 @@ export function GoalComparisonCharts({ totalNutrition, userProfile }: {
     userProfile?.targetCarbs
   );
 
+  /**
+   * 目標が設定されていない場合の表示
+   */
   if (!hasTargets) {
     return (
       <div className="flex justify-center items-center h-[200px] text-gray-500">
@@ -65,6 +71,9 @@ export function GoalComparisonCharts({ totalNutrition, userProfile }: {
     }
   ];
 
+  /**
+   * 目標比較チャートの表示
+   */
   return (
     <div className="space-y-8">
       {/* カロリー比較グラフ */}

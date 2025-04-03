@@ -7,6 +7,9 @@ import { DatabaseMealRecord } from '@/types';
 
 /**
  * 食事記録リストのコンポーネント
+ * @param selectedDateMeals 選択された日付の食事記録
+ * @param handleDeleteMeal 食事記録の削除
+ * @returns 食事記録リスト
  */
 export function MealRecordList({ 
   selectedDateMeals, 
@@ -15,7 +18,10 @@ export function MealRecordList({
   selectedDateMeals: DatabaseMealRecord[], 
   handleDeleteMeal: (id: string) => Promise<void> 
 }) {
-  // 食事タイプごとの背景色を設定
+
+  /**
+   * 食事タイプごとの背景色を設定
+   */
   const getMealTypeColor = (type: string) => {
     switch(type) {
       case 'breakfast': return 'bg-amber-50 border-amber-100';
@@ -26,7 +32,9 @@ export function MealRecordList({
     }
   };
 
-  // 食事タイプごとのテキスト色を設定
+  /**
+   * 食事タイプごとのテキスト色を設定
+   */
   const getMealTypeTextColor = (type: string) => {
     switch(type) {
       case 'breakfast': return 'text-amber-700';
@@ -37,6 +45,9 @@ export function MealRecordList({
     }
   };
 
+  /**
+   * 食事記録がない場合の表示
+   */
   if (selectedDateMeals.length === 0) {
     return (
       <div className="flex flex-col justify-center items-center h-40 text-gray-400">
@@ -48,6 +59,9 @@ export function MealRecordList({
     );
   }
 
+  /**
+   * 食事記録リストの表示
+   */
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

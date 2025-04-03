@@ -5,6 +5,8 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 /**
  * 栄養バランス表示コンポーネント
+ * @param totalNutrition 総栄養素
+ * @returns 栄養バランス表示コンポーネント
  */
 export function NutritionBalanceChart({ totalNutrition }: { totalNutrition: Nutrition }) {
   /**
@@ -23,6 +25,9 @@ export function NutritionBalanceChart({ totalNutrition }: { totalNutrition: Nutr
     ? nutritionData 
     : nutritionData.map(item => ({ ...item, value: item.name === 'タンパク質' ? 1 : 0 }));
 
+  /**
+   * 総カロリーが0の場合の表示
+   */
   if (totalNutrition.kcal === 0) {
     return (
       <div className="flex justify-center items-center h-[200px] text-gray-500">
@@ -31,6 +36,9 @@ export function NutritionBalanceChart({ totalNutrition }: { totalNutrition: Nutr
     );
   }
 
+  /**
+   * 栄養バランス表示コンポーネントの表示
+   */
   return (
     <div className="flex flex-col lg:flex-row items-center gap-6">
       <div className="w-full lg:w-1/2 h-[200px]">

@@ -195,6 +195,9 @@ export function DashboardCharts() {
     return new Date().toISOString().split('T')[0];
   };
 
+  /**
+   * ローディング中の表示
+   */
   if (isLoading && meals.length === 0) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -214,6 +217,9 @@ export function DashboardCharts() {
     );
   }
 
+  /**
+   * エラー時の表示
+   */
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
@@ -238,6 +244,9 @@ export function DashboardCharts() {
     userProfile?.targetCarbs
   );
 
+  /**
+   * ダッシュボードの表示
+   */
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
