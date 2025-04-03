@@ -24,46 +24,48 @@ export async function analyzeMeals(
       messages: [
         {
           role: 'system',
-          content: `あなたは栄養士のアシスタントです。
-ユーザーの食事記録、身体情報、目標に基づいて、詳細な栄養分析とアドバイスを提供してください。
-以下の形式で回答を構造化してください：
+          content: `あなたは栄養士のアシスタントとして、科学的根拠に基づいた栄養分析とアドバイスを提供します。
 
-【基本情報分析】
-• ユーザーの身体特性（性別、身長、体重、BMI）に基づく基礎代謝や必要栄養素の評価
-• 現在の目標（減量/増量/維持）に対する栄養摂取目標値の適切性の評価
-• 現在の栄養摂取目標値が適切でない場合、 現在の目標（減量/増量/維持）に対する適切な栄養摂取目標値の提示
+【分析の目的】
+ユーザーの食事記録とプロフィールデータを基に、現状を正確に把握し、健康的な食生活に向けた具体的で実行可能なアドバイスを提供すること。
 
-【目標達成状況】
-• 設定された栄養目標値の評価（適切か過不足があるか）
-• 目標に対する現在の摂取状況の比較分析
-• 目標達成のための具体的なアドバイス
+【回答の構成】
+1. 基本情報分析
+   - 基礎代謝量(BMR)と1日の消費カロリー(TDEE)の確認
+   - 目標に対する現在の摂取栄養素の過不足評価
+   - PFCバランス評価（理想的なタンパク質:脂質:炭水化物の比率との比較）
 
-【食事内容の評価】
-• 提供された食事メニューの栄養バランス評価
-• 主要栄養素（タンパク質、脂質、炭水化物）のバランス
-• 食材の多様性評価
-• 改善が必要な点の指摘
+2. 食事内容の詳細評価
+   - 各食事（朝食/昼食/夕食/間食）ごとの栄養バランス
+   - 主要栄養素の摂取量と質の評価
+   - 食事パターンの分析（食事の回数、間隔、量の分散）
 
-【推奨事項】
-• ユーザーの目標に適した具体的な食材の提案
-• 1日の食事パターンの提案
-• 不足している栄養素を補うための具体的な食材や食事の提案
+3. 改善提案
+   - 不足/過剰な栄養素の具体的な調整方法
+   - 目標達成のための具体的な食品と量の提案
+   - 次の1週間で実践できる現実的な行動計画
 
-【まとめ】
-• 全体的な評価
-• 優先的に取り組むべき改善点
-• 継続できている良い点
+4. まとめ
+   - 現状の食事パターンの良い点
+   - 最優先で改善すべき1-2点
+   - 具体的な成功指標
 
-回答は箇条書きを活用し、わかりやすく構造化してください。
-アドバイスは具体的で実行可能なものにしてください。`
+【回答の原則】
+- 科学的根拠に基づく情報のみを提供する
+- 極端な制限や非現実的な提案は避ける
+- 数値データ（グラム数、カロリー等）を具体的に示す
+- 日本の食文化や一般的な食品に基づいたアドバイスを提供する
+- 食事の楽しさと持続可能性を重視する
+
+ユーザーの目標（減量/維持/増量）と現在の食事記録に基づいて最適化されたアドバイスを提供してください。`
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 0.7,
-      max_tokens: 1500,
+      temperature: 0.5,
+      max_tokens: 2000,
     });
 
     return response.choices[0]?.message?.content || '分析結果を生成できませんでした。';
@@ -128,21 +130,58 @@ function createAnalysisPrompt(
   const bmr = calculateBMR(userProfile?.gender, userProfile?.weight, userProfile?.height, userProfile?.birthDate);
   const tdee = calculateTDEE(bmr, userProfile?.activityLevel);
 
+  // 理想的なPFCバランスの計算
+  const calculateIdealPFC = (tdee: number | null, goal: string | null | undefined) => {
+    if (!tdee) return null;
+    
+    // 目標に応じたPFCバランスの調整
+    // 一般的な推奨値をベースに、目標に応じて調整
+    switch (goal) {
+      case 'lose_weight':
+        return {
+          protein: Math.round((tdee * 0.3) / 4), // タンパク質30%（4kcal/g）
+          fat: Math.round((tdee * 0.25) / 9),    // 脂質25%（9kcal/g）
+          carbs: Math.round((tdee * 0.45) / 4)   // 炭水化物45%（4kcal/g）
+        };
+      case 'gain_weight':
+        return {
+          protein: Math.round((tdee * 0.25) / 4), // タンパク質25%（4kcal/g）
+          fat: Math.round((tdee * 0.25) / 9),     // 脂質25%（9kcal/g）
+          carbs: Math.round((tdee * 0.5) / 4)     // 炭水化物50%（4kcal/g）
+        };
+      case 'maintain_weight':
+      default:
+        return {
+          protein: Math.round((tdee * 0.2) / 4), // タンパク質20%（4kcal/g）
+          fat: Math.round((tdee * 0.25) / 9),    // 脂質25%（9kcal/g）
+          carbs: Math.round((tdee * 0.55) / 4)   // 炭水化物55%（4kcal/g）
+        };
+    }
+  };
+
+  const idealPFC = calculateIdealPFC(tdee, userProfile?.goal);
+
   const profileInfo = userProfile ? `
 【ユーザー基本情報】
 • 性別: ${userProfile.gender === 'male' ? '男性' : userProfile.gender === 'female' ? '女性' : 'その他'}
 • 身長: ${userProfile.height ? `${userProfile.height}cm` : '未設定'}
 • 体重: ${userProfile.weight ? `${userProfile.weight}kg` : '未設定'}
-• 基礎代謝量: ${bmr ? `${bmr}kcal` : '未計算'}
-• 1日の消費カロリー目安: ${tdee ? `${tdee}kcal` : '未計算'}
+• 年齢: ${userProfile.birthDate ? `${calculateAge(userProfile.birthDate)}歳` : '未設定'}
+• 基礎代謝量(BMR): ${bmr ? `${bmr}kcal` : '未計算'}
+• 1日の消費カロリー(TDEE): ${tdee ? `${tdee}kcal` : '未計算'}
 • 活動レベル: ${getActivityLevelLabel(userProfile.activityLevel)}
 • 目標: ${getGoalLabel(userProfile.goal)}
 
 【栄養目標】
-• 目標カロリー: ${userProfile.targetCalories ? `${userProfile.targetCalories}kcal` : '未設定'}
-• 目標タンパク質: ${userProfile.targetProtein ? `${userProfile.targetProtein}g` : '未設定'}
-• 目標脂質: ${userProfile.targetFat ? `${userProfile.targetFat}g` : '未設定'}
-• 目標炭水化物: ${userProfile.targetCarbs ? `${userProfile.targetCarbs}g` : '未設定'}
+• 設定目標カロリー: ${userProfile.targetCalories ? `${userProfile.targetCalories}kcal` : '未設定'}
+• 設定目標タンパク質: ${userProfile.targetProtein ? `${userProfile.targetProtein}g` : '未設定'}
+• 設定目標脂質: ${userProfile.targetFat ? `${userProfile.targetFat}g` : '未設定'}
+• 設定目標炭水化物: ${userProfile.targetCarbs ? `${userProfile.targetCarbs}g` : '未設定'}
+
+【理想的なPFCバランス参考値】
+• 推奨タンパク質: ${idealPFC ? `${idealPFC.protein}g (体重1kgあたり約${userProfile.weight ? Math.round(idealPFC.protein / userProfile.weight * 10) / 10 : 'X'}g)` : '未計算'}
+• 推奨脂質: ${idealPFC ? `${idealPFC.fat}g` : '未計算'}
+• 推奨炭水化物: ${idealPFC ? `${idealPFC.carbs}g` : '未計算'}
 ` : '（ユーザープロファイル情報なし）';
 
   // 食事記録の整形と集計
@@ -154,21 +193,73 @@ function createAnalysisPrompt(
       carbs: sum.carbs + (item.totalCarbs || 0)
     }), { calories: 0, protein: 0, fat: 0, carbs: 0 });
 
+    // 食事タイプごとの集計も行う
+    if (!acc.byMealType[meal.mealType]) {
+      acc.byMealType[meal.mealType] = { calories: 0, protein: 0, fat: 0, carbs: 0 };
+    }
+    
+    acc.byMealType[meal.mealType].calories += (totalNutrients?.calories || 0);
+    acc.byMealType[meal.mealType].protein += (totalNutrients?.protein || 0);
+    acc.byMealType[meal.mealType].fat += (totalNutrients?.fat || 0);
+    acc.byMealType[meal.mealType].carbs += (totalNutrients?.carbs || 0);
+
     return {
       calories: acc.calories + (totalNutrients?.calories || 0),
       protein: acc.protein + (totalNutrients?.protein || 0),
       fat: acc.fat + (totalNutrients?.fat || 0),
-      carbs: acc.carbs + (totalNutrients?.carbs || 0)
+      carbs: acc.carbs + (totalNutrients?.carbs || 0),
+      byMealType: acc.byMealType
     };
-  }, { calories: 0, protein: 0, fat: 0, carbs: 0 });
+  }, { calories: 0, protein: 0, fat: 0, carbs: 0, byMealType: {} as Record<string, { calories: number, protein: number, fat: number, carbs: number }> });
+
+  // PFCバランスの計算
+  const calculatePFCRatio = (calories: number, protein: number, fat: number, carbs: number) => {
+    if (calories === 0) return { proteinRatio: 0, fatRatio: 0, carbsRatio: 0 };
+    
+    const proteinCal = protein * 4;
+    const fatCal = fat * 9;
+    const carbsCal = carbs * 4;
+    
+    return {
+      proteinRatio: Math.round((proteinCal / calories) * 100),
+      fatRatio: Math.round((fatCal / calories) * 100),
+      carbsRatio: Math.round((carbsCal / calories) * 100)
+    };
+  };
+
+  const pfcRatio = calculatePFCRatio(
+    mealSummary.calories, 
+    mealSummary.protein, 
+    mealSummary.fat, 
+    mealSummary.carbs
+  );
+
+  // 食事タイプごとの集計情報
+  const mealTypeInfo = Object.entries(mealSummary.byMealType).map(([type, nutrients]) => {
+    const typePFC = calculatePFCRatio(
+      nutrients.calories,
+      nutrients.protein,
+      nutrients.fat,
+      nutrients.carbs
+    );
+    
+    return `• ${getMealTypeLabel(type)}:
+  - カロリー: ${Math.round(nutrients.calories)}kcal
+  - タンパク質: ${Math.round(nutrients.protein)}g (${typePFC.proteinRatio}%)
+  - 脂質: ${Math.round(nutrients.fat)}g (${typePFC.fatRatio}%)
+  - 炭水化物: ${Math.round(nutrients.carbs)}g (${typePFC.carbsRatio}%)`;
+  }).join('\n\n');
 
   const mealsInfo = meals.length > 0
     ? `
 【食事記録サマリー】
-• 総摂取カロリー: ${Math.round(mealSummary.calories)}kcal
-• 総タンパク質: ${Math.round(mealSummary.protein)}g
-• 総脂質: ${Math.round(mealSummary.fat)}g
-• 総炭水化物: ${Math.round(mealSummary.carbs)}g
+• 総摂取カロリー: ${Math.round(mealSummary.calories)}kcal ${tdee ? `(TDEEとの差: ${Math.round(mealSummary.calories - tdee)}kcal)` : ''}
+• 総タンパク質: ${Math.round(mealSummary.protein)}g (${pfcRatio.proteinRatio}%) ${userProfile?.weight ? `(体重1kgあたり約${Math.round(mealSummary.protein / userProfile.weight * 10) / 10}g)` : ''}
+• 総脂質: ${Math.round(mealSummary.fat)}g (${pfcRatio.fatRatio}%)
+• 総炭水化物: ${Math.round(mealSummary.carbs)}g (${pfcRatio.carbsRatio}%)
+
+【食事タイプ別集計】
+${mealTypeInfo}
 
 【詳細な食事記録】
 ${meals.map(meal => {
@@ -185,11 +276,17 @@ ${items}`;
 
   // 最終的なプロンプト
   return `
-以下は本日の食事記録です。提供した情報に基づいて、詳細な栄養分析とアドバイスを提供してください。
+以下のユーザープロフィールと食事記録に基づいて、科学的かつ実践的な栄養分析とアドバイスを提供してください。
 
 ${profileInfo}
 
-${mealsInfo}`;
+${mealsInfo}
+
+具体的に以下の点を分析してください：
+1. 現在の食事パターンの良い点と改善点
+2. 目標達成に向けた具体的なアドバイス
+3. 不足している栄養素と補うための具体的な食品提案
+4. 次の1週間で実践できる具体的な食事プラン`;
 }
 
 /**
@@ -229,4 +326,18 @@ function getGoalLabel(goal: string | null | undefined): string {
     gain_weight: '増量'
   };
   return goal ? (labels[goal] || goal) : '未設定';
+}
+
+/**
+ * 生年月日から年齢を計算する
+ */
+function calculateAge(birthDate: string): number {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
 } 
