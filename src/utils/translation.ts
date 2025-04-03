@@ -58,6 +58,37 @@ function saveToCache(text: string, translated: string, cache: TranslationCache):
 }
 
 /**
+ * 翻訳結果を後処理する関数
+ * 括弧内の説明や余分な修飾を取り除く
+ * @param translatedText 翻訳されたテキスト
+ * @returns 後処理されたテキスト
+ */
+function postProcessTranslation(translatedText: string): string {
+  // 括弧内のテキストを削除 (例: "salmon (any fish of the family Salmonidae)" → "salmon")
+  let processed = translatedText.replace(/\s*\([^)]*\)/g, '');
+  
+  // コンマ以降の説明的な部分を削除 (例: "rice, white" → "rice")
+  processed = processed.replace(/,.*$/, '');
+  
+  // 余分な空白をトリム
+  processed = processed.trim();
+  
+  // 複数の単語がある場合、食品名として最も関連性の高いと思われる最初の単語または単語群を保持
+  // 例: "Japanese rice" は保持するが "various types of fish" の場合は "fish" のみ抽出したい
+  if (processed.includes(' ')) {
+    // 形容詞+名詞の組み合わせを維持するための簡易ルール
+    // 3単語以上の場合は、最初の2単語のみ保持（ヒューリスティックな対応）
+    const words = processed.split(' ');
+    if (words.length > 2) {
+      // 最初の2単語を保持（例: "Japanese rice"）、または最後の単語（主要な名詞と想定）
+      processed = words.slice(0, 2).join(' ');
+    }
+  }
+  
+  return processed;
+}
+
+/**
  * DeepL APIを使用して日本語テキストを英語に翻訳する
  * @param text 翻訳対象のテキスト
  * @returns 英語に翻訳されたテキスト
@@ -95,10 +126,13 @@ export async function translateToEnglish(text: string): Promise<string> {
     if (response.data && response.data.translations && response.data.translations.length > 0) {
       const translated = response.data.translations[0].text;
       
-      // キャッシュに保存
-      saveToCache(text, translated, jaToEnCache);
+      // 翻訳結果を後処理
+      const processedTranslation = postProcessTranslation(translated);
       
-      return translated;
+      // 後処理された結果をキャッシュに保存
+      saveToCache(text, processedTranslation, jaToEnCache);
+      
+      return processedTranslation;
     } else {
       console.error('DeepL APIから翻訳結果が返されませんでした', response.data);
       return text; // エラー時は元のテキストを返す
@@ -152,10 +186,13 @@ export async function translateToJapanese(text: string): Promise<string> {
     if (response.data && response.data.translations && response.data.translations.length > 0) {
       const translated = response.data.translations[0].text;
       
-      // キャッシュに保存
-      saveToCache(text, translated, enToJaCache);
+      // 日本語への翻訳も後処理を適用（必要に応じて）
+      const processedTranslation = postProcessTranslation(translated);
       
-      return translated;
+      // 後処理された結果をキャッシュに保存
+      saveToCache(text, processedTranslation, enToJaCache);
+      
+      return processedTranslation;
     } else {
       console.error('DeepL APIから翻訳結果が返されませんでした', response.data);
       return text; // エラー時は元のテキストを返す
