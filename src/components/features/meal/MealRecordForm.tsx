@@ -295,6 +295,12 @@ export function MealRecordForm({ initialData, onSuccess }: MealRecordFormProps) 
           <label className="block text-sm font-semibold text-gray-800 mb-2">
             食品を検索して追加
           </label>
+          <div className="mb-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+            <ul className="list-disc list-inside space-y-1">
+              <li>具体的な食材名で検索してください（例: 「鮭」「玄米」「豚肉」など）</li>
+              <li>検索結果は100gあたりの栄養価を基準に表示しています</li>
+            </ul>
+          </div>
           <FoodSearch onSelect={handleFoodSelect} />
         </div>
 
