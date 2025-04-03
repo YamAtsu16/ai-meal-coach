@@ -7,7 +7,7 @@ import type {
   EdamamHint,
   EdamamParsedFood,
   EdamamResponse
-} from '@/types/features/food/type';
+} from '@/types';
 import { translateToEnglish, translateToJapanese } from '@/utils/translation';
 
 const EDAMAM_APP_ID = process.env.EDAMAM_APP_ID;

@@ -1,6 +1,7 @@
+import { DatabaseMealRecord, UserProfileFormData } from '@/types';
 import OpenAI from 'openai';
-import type { UserProfileFormData } from '@/types/features/profile/type';
-import { DatabaseMealRecord } from '@/types/features/meal/type';
+
+
 // OpenAIクライアントの初期化
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

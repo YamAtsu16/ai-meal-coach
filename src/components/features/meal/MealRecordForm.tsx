@@ -6,9 +6,7 @@ import { TrashIcon } from '@heroicons/react/24/outline';
 import { FoodSearch } from './FoodSearch';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/providers';
-import { DatabaseFoodItem, FoodItem, mealRecordSchema } from '@/types/features/meal/type';
-import { FoodSearchResult } from '@/types/features/food/type';
-import { MealRecord } from '@/types/features/meal/type';
+import { DatabaseFoodItem, FoodItem, FoodSearchResult, MealRecord, mealRecordSchema } from '@/types';
 
 /**
  * 食事記録フォームのProps

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { UserProfileFormData, userProfileSchema } from '@/types/features/profile/type';
+import { UserProfileFormData, userProfileSchema } from '@/types';
 import { useToast } from '@/providers';
 
 /**

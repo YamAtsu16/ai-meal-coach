@@ -5,8 +5,7 @@ import { FireIcon, ChartBarIcon, ClockIcon, FlagIcon, PencilIcon, TrashIcon } fr
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MEAL_TYPE_LABELS } from '@/constants/features/meal/constant';
-import { DatabaseMealRecord } from '@/types/features/meal/type';
-import { UserProfileFormData } from '@/types/features/profile/type';
+import { DatabaseMealRecord, UserProfileFormData } from '@/types';
 
 /**
  * ダッシュボードのグラフ

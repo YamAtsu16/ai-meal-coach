@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UserProfileFormData } from '@/types/features/profile/type';
+import { UserProfileFormData } from '@/types';
 import { connectToDatabase } from '@/utils/mongodb';
 import { getServerSession } from 'next-auth';
 
