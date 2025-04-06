@@ -1,7 +1,7 @@
 'use client';
 
 import { Nutrition } from '@/lib/types';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 /**
  * 栄養バランス表示コンポーネント
@@ -13,9 +13,9 @@ export function NutritionBalanceChart({ totalNutrition }: { totalNutrition: Nutr
    * 栄養バランスのデータを計算
    */
   const nutritionData = [
-    { name: 'タンパク質', value: totalNutrition.protein * 4, color: '#3B82F6' },
-    { name: '脂質', value: totalNutrition.fat * 9, color: '#EF4444' },
-    { name: '炭水化物', value: totalNutrition.carbs * 4, color: '#10B981' },
+    { name: 'タンパク質', value: totalNutrition.protein * 4, grams: totalNutrition.protein, color: '#3B82F6' },
+    { name: '脂質', value: totalNutrition.fat * 9, grams: totalNutrition.fat, color: '#EF4444' },
+    { name: '炭水化物', value: totalNutrition.carbs * 4, grams: totalNutrition.carbs, color: '#10B981' },
   ];
 
   /**
@@ -57,7 +57,6 @@ export function NutritionBalanceChart({ totalNutrition }: { totalNutrition: Nutr
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => [`${Math.round(Number(value))} kcal`, '']} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -69,7 +68,9 @@ export function NutritionBalanceChart({ totalNutrition }: { totalNutrition: Nutr
               <div className="flex-1">
                 <div className="flex justify-between items-baseline">
                   <span className="text-sm font-medium text-gray-800">{item.name}</span>
-                  <span className="text-sm font-medium text-gray-800">{Math.round(item.value)}kcal</span>
+                  <span className="text-sm font-medium text-gray-800">
+                    {item.grams.toFixed(1)}g  ({Math.round(item.value)}kcal)
+                  </span>
                 </div>
                 <div className="mt-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
