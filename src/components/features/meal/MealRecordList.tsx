@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { MEAL_TYPE_LABELS } from '@/constants/features/meal/constant';
-import { DatabaseMealRecord } from '@/types';
+import { MEAL_TYPE_LABELS } from '@/lib/constants/features/meal/constant';
+import { DatabaseMealRecord } from '@/lib/types';
 
 /**
  * 食事記録リストのコンポーネント

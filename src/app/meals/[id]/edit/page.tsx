@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { MealRecordForm } from '@/components/features/meal/MealRecordForm';
-import { DatabaseMealRecord } from '@/types';
+import { DatabaseMealRecord } from '@/lib/types';
 
 /**
  * 食事編集ページのProps

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserProfile } from "@/types/features/profile/type";
+import { UserProfile } from "../profile/type";
 
 /**
  * データベースのユーザー型

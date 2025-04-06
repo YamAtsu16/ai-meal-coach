@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { analyzeMeals } from '@/utils/openai';
-import { DatabaseMealRecord, UserProfileFormData } from '@/types';
+import { analyzeMeals } from '@/lib/utils/openai';
+import { DatabaseMealRecord, UserProfileFormData } from '@/lib/types';
 
 /**
  * 食事分析を行うAPIエンドポイント

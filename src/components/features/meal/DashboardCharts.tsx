@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { FireIcon, ChartBarIcon, ClockIcon, FlagIcon } from '@heroicons/react/24/outline';
-import { DatabaseMealRecord, UserProfileFormData, Nutrition } from '@/types';
+import { DatabaseMealRecord, UserProfileFormData, Nutrition } from '@/lib/types';
 import { NutritionBalanceChart } from './NutritionBalanceChart';
 import { GoalComparisonCharts } from './GoalComparisonCharts';
 import { MealRecordList } from './MealRecordList';

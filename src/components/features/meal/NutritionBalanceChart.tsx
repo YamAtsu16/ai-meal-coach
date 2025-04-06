@@ -1,6 +1,6 @@
 'use client';
 
-import { Nutrition } from '@/types';
+import { Nutrition } from '@/lib/types';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 /**

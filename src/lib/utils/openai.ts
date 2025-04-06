@@ -1,4 +1,4 @@
-import { DatabaseMealRecord, UserProfileFormData } from '@/types';
+import { DatabaseMealRecord, UserProfileFormData } from '../types';
 import OpenAI from 'openai';
 
 

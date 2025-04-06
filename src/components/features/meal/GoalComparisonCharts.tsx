@@ -1,7 +1,7 @@
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from 'recharts';
-import { UserProfileFormData, Nutrition } from '@/types';
+import { UserProfileFormData, Nutrition } from '@/lib/types';
 
 /**
  * 目標比較チャートコンポーネント

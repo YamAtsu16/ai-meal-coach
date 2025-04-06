@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { connectToDatabase } from '@/utils/mongodb';
+import { connectToDatabase } from '@/lib/utils/mongodb';
 import { getToken } from 'next-auth/jwt';
 import { ObjectId } from 'mongodb';
 

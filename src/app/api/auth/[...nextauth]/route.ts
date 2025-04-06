@@ -1,9 +1,9 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
-import clientPromise from '@/utils/mongodb';
+import clientPromise from '@/lib/utils/mongodb';
 import { compare } from 'bcryptjs';
-import { connectToDatabase } from '@/utils/mongodb';
+import { connectToDatabase } from '@/lib/utils/mongodb';
 import { AuthOptions } from 'next-auth';
 import { JWT } from 'next-auth/jwt';
 import { Session } from 'next-auth';
