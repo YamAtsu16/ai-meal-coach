@@ -63,7 +63,7 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* ロゴ */}
           <Link href="/" className="font-bold text-lg sm:text-xl text-blue-600 whitespace-nowrap">
-            AI食事コーチ
+            AI Meal Coach
           </Link>
 
           {/* デスクトップメニュー - md以上の画面幅で表示 */}

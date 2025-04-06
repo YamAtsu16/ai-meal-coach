@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AuthProvider, ToastProvider } from '@/providers';
 import { Navigation } from '@/components/common/layout/Navigation';
+import { Footer } from '@/components/common/layout/Footer';
 
 /** フォント */
 const inter = Inter({ subsets: ['latin'] });
@@ -29,11 +30,12 @@ export default function RootLayout({
         <AuthProvider>
           <ToastProvider>
             <Navigation />
-            <div className="min-h-screen pt-16 pb-20">
+            <div className="min-h-screen pt-16">
               <main className="container mx-auto px-4 py-8">
                 {children}
               </main>
             </div>
+            <Footer />
           </ToastProvider>
         </AuthProvider>
       </body>
