@@ -129,8 +129,11 @@ export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) 
       {analysisResult && (
         <div className="mb-2">
           <h3 className="text-lg font-medium text-gray-800 mb-3">分析結果</h3>
-          <div className="p-5 bg-blue-50 rounded-lg border border-blue-100 whitespace-pre-line">
-            {analysisResult}
+          <div className="nutrition-analysis-content bg-blue-50 rounded-lg border border-blue-100 overflow-auto">
+            <div
+              dangerouslySetInnerHTML={{ __html: analysisResult }}
+              className="nutrition-analysis p-5"
+            />
           </div>
         </div>
       )}
@@ -140,6 +143,61 @@ export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) 
         <p>※ AI分析は参考情報です。正確な栄養アドバイスについては専門家にご相談ください。</p>
         <p>※ 分析には最大30秒程度かかる場合があります。</p>
       </div>
+
+      {/* 分析結果のスタイル */}
+      <style jsx global>{`
+        .nutrition-analysis h2 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #1f2937;
+          margin-top: 1.5rem;
+          margin-bottom: 1rem;
+        }
+        
+        .nutrition-analysis h3 {
+          font-size: 1.25rem;
+          font-weight: 500;
+          color: #374151;
+          margin-top: 1.25rem;
+          margin-bottom: 0.75rem;
+        }
+        
+        .nutrition-analysis p {
+          margin-bottom: 1rem;
+          line-height: 1.6;
+        }
+        
+        .nutrition-analysis ul {
+          list-style-type: disc;
+          padding-left: 1.5rem;
+          margin-bottom: 1rem;
+        }
+        
+        .nutrition-analysis li {
+          margin-bottom: 0.5rem;
+        }
+        
+        .nutrition-analysis strong {
+          font-weight: 600;
+          color: #1e40af;
+        }
+        
+        .nutrition-analysis section {
+          margin-bottom: 2rem;
+        }
+        
+        .nutrition-analysis .callout {
+          background-color: #eff6ff;
+          border: 1px solid #bfdbfe;
+          border-radius: 0.375rem;
+          padding: 1rem;
+          margin: 1rem 0;
+        }
+        
+        .nutrition-analysis-content {
+          max-height: 600px;
+        }
+      `}</style>
     </div>
   );
 } 
