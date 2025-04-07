@@ -210,7 +210,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">プロフィール設定</h1>
+        <h1 className="text-2xl font-bold mb-6">プロフィール</h1>
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
           {/* 基本情報セクション */}

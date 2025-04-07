@@ -32,7 +32,7 @@ export function GoalComparisonCharts({ totalNutrition, userProfile }: {
         <div className="text-center">
           <p>目標が設定されていません</p>
           <a href="/profile" className="text-blue-500 hover:underline mt-2 inline-block">
-            プロフィールページで目標を設定する
+            プロフィールで目標を設定する
           </a>
         </div>
       </div>

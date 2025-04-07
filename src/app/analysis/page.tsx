@@ -49,7 +49,7 @@ export default function AnalysisPage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">栄養分析</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">食事分析</h1>
         </div>
 
         {/* 日付選択 */}

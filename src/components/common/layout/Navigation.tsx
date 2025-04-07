@@ -113,7 +113,7 @@ export function Navigation() {
                   }`}
                 >
                   <UserIcon className="h-5 w-5 mr-1" />
-                  <span>設定</span>
+                  <span>プロフィール</span>
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -221,7 +221,7 @@ export function Navigation() {
                     onClick={handleMenuItemClick}
                   >
                     <UserIcon className="h-5 w-5 mr-2" />
-                    <span>設定</span>
+                    <span>プロフィール</span>
                   </Link>
                   <button
                     onClick={handleLogout}
