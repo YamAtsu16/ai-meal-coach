@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginFormData, loginSchema } from '@/lib/types';
+import { useErrorHandler } from '@/lib/hooks';
 
 /**
  * ログインページ
@@ -20,8 +21,8 @@ export default function LoginPage() {
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(false);
-  /** エラーメッセージ */
-  const [loginError, setLoginError] = useState<string | null>(null);
+  /** エラーハンドラー */
+  const { handleError } = useErrorHandler();
 
   /**
    * フォームのコントロール
@@ -40,7 +41,6 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
-      setLoginError(null);
 
       // ログイン
       const result = await signIn('credentials', {
@@ -50,7 +50,9 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setLoginError(result.error);
+        const errorMessage = result.error;
+        // トーストでエラーを表示
+        handleError(errorMessage, 'ログインに失敗しました');
         return;
       }
 
@@ -58,8 +60,8 @@ export default function LoginPage() {
       router.push(callbackUrl);
       router.refresh();
     } catch (error) {
-      setLoginError('ログイン中にエラーが発生しました');
-      console.error('ログインエラー:', error);
+      const errorMessage = 'ログイン中にエラーが発生しました';
+      handleError(error, errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -78,19 +80,6 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {/* エラーメッセージ */}
-          {loginError && (
-            <div className="rounded-md bg-red-50 p-4 mb-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    {loginError}
-                  </h3>
-                </div>
-              </div>
-            </div>
-          )}
-
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             {/* メールアドレス入力欄 */}
             <div>

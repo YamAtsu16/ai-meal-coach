@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RegisterFormData, registerSchema } from '@/types';
+import { RegisterFormData, registerSchema } from '@/lib/types';
+import { useErrorHandler } from '@/lib/hooks';
+import { useToast } from '@/providers';
 
 /**
  * 登録ページ
@@ -15,10 +17,13 @@ export default function RegisterPage() {
   const router = useRouter();
   /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(false);
-  /** エラーメッセージ */
-  const [registerError, setRegisterError] = useState<string | null>(null);
   /** 登録成功メッセージ */
   const [registerSuccess, setRegisterSuccess] = useState(false);
+  /** エラーハンドラー */
+  const { handleError } = useErrorHandler();
+  /** トースト */
+  const { showToast } = useToast();
+  
   /** フォームのコントロール */
   const {
     register,
@@ -36,8 +41,6 @@ export default function RegisterPage() {
     try {
       // ローディング状態の初期化
       setIsLoading(true);
-      // エラーメッセージの初期化
-      setRegisterError(null);
       // 登録成功メッセージの初期化
       setRegisterSuccess(false);
 
@@ -59,6 +62,9 @@ export default function RegisterPage() {
       }
 
       setRegisterSuccess(true);
+      // 登録成功メッセージをトーストで表示
+      showToast('登録が完了しました！', 'success');
+      
       // フォームをリセット
       reset();
       
@@ -68,8 +74,8 @@ export default function RegisterPage() {
       }, 3000);
       
     } catch (error) {
-      setRegisterError(error instanceof Error ? error.message : '登録に失敗しました');
-      console.error('登録エラー:', error);
+      // エラーをトーストで表示
+      handleError(error, '登録に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -95,19 +101,6 @@ export default function RegisterPage() {
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-green-800">
                     登録が完了しました！ログインページに移動します...
-                  </h3>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* エラーメッセージ */}
-          {registerError && (
-            <div className="rounded-md bg-red-50 p-4 mb-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    {registerError}
                   </h3>
                 </div>
               </div>

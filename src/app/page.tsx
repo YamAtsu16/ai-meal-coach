@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useErrorHandler } from '@/lib/hooks';
 
 /**
  * ランディングページ（トップページ）
@@ -11,6 +12,7 @@ import { motion } from 'framer-motion';
 export default function LandingPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const router = useRouter();
+  const { handleError } = useErrorHandler();
 
   // 認証状態のチェック
   useEffect(() => {
@@ -28,13 +30,13 @@ export default function LandingPage() {
           router.push('/home');
         }
       } catch (error) {
-        console.error('認証チェックエラー:', error);
+        handleError(error, '認証状態の確認中にエラーが発生しました');
         setIsAuthenticated(false);
       }
     };
     
     checkAuth();
-  }, [router]);
+  }, [router, handleError]);
 
   // ローディング中は何も表示しない
   if (isAuthenticated === null) {

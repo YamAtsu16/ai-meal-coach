@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ArrowPathIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { useErrorHandler } from '@/lib/hooks';
 
 /**
  * 栄養アドバイスコンポーネントのProps
@@ -16,16 +17,16 @@ interface NutritionAdviceProps {
  */
 export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [showAPIKeyWarning, setShowAPIKeyWarning] = useState(false);
+  const { handleError } = useErrorHandler();
 
   /**
    * 選択された日付が変更された時にリセット
    */
   useEffect(() => {
     setAnalysisResult(null);
-    setError(null);
+    setShowAPIKeyWarning(false);
   }, [selectedDate]);
 
   /**
@@ -34,7 +35,7 @@ export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) 
   const handleStartAnalysis = async () => {
     try {
       setIsLoading(true);
-      setError(null);
+      setShowAPIKeyWarning(false);
       setAnalysisResult(null);
 
       const response = await fetch('/api/analysis', {
@@ -53,9 +54,9 @@ export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) 
         // APIキーがない場合の特別なエラーメッセージ
         if (data.message === 'OpenAI APIキーが設定されていません') {
           setShowAPIKeyWarning(true);
-          setError('OpenAI APIキーが設定されていません。APIキーの設定方法は管理者にお問い合わせください。');
         } else {
-          setError(data.message || '分析処理中にエラーが発生しました');
+          const errorMessage = data.message || '分析処理中にエラーが発生しました';
+          handleError(errorMessage, '分析処理中にエラーが発生しました');
         }
         return;
       }
@@ -63,11 +64,12 @@ export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) 
       if (data.success && data.data) {
         setAnalysisResult(data.data.result);
       } else {
-        setError('分析結果を取得できませんでした');
+        const errorMessage = '分析結果を取得できませんでした';
+        handleError(errorMessage);
       }
     } catch (error) {
-      setError('通信エラーが発生しました。ネットワーク接続を確認してください。');
-      console.error('分析リクエストエラー:', error);
+      const errorMessage = '通信エラーが発生しました。ネットワーク接続を確認してください。';
+      handleError(error, errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -103,25 +105,13 @@ export default function NutritionAdvice({ selectedDate }: NutritionAdviceProps) 
         </button>
       </div>
 
-      {/* API警告メッセージ */}
+      {/* API警告メッセージ - APIキー関連の重要な警告なので画面内に表示する */}
       {showAPIKeyWarning && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800">
-          <h4 className="font-medium mb-2">OpenAI APIキーが必要です</h4>
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-800">
+          <h4 className="font-medium mb-2">予期せぬエラーが発生しました</h4>
           <p className="text-sm">
-            この機能を使用するには、OpenAI APIキーの設定が必要です。
-            <br />
-            .envファイルにAPIキーを設定してください：
-            <code className="block bg-gray-800 text-white p-2 rounded mt-2 text-xs">
-              OPENAI_API_KEY=your_api_key_here
-            </code>
+            お手数ですが、管理者に問い合わせてください。
           </p>
-        </div>
-      )}
-
-      {/* エラーメッセージ */}
-      {error && !showAPIKeyWarning && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
-          {error}
         </div>
       )}
 

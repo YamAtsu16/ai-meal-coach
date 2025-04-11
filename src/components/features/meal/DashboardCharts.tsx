@@ -6,6 +6,7 @@ import { DatabaseMealRecord, UserProfileFormData, Nutrition } from '@/lib/types'
 import { NutritionBalanceChart } from './NutritionBalanceChart';
 import { GoalComparisonCharts } from './GoalComparisonCharts';
 import { MealRecordList } from './MealRecordList';
+import { useErrorHandler } from '@/lib/hooks';
 
 /**
  * ダッシュボードのグラフ
@@ -18,10 +19,10 @@ export function DashboardCharts() {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(true);
-  /** エラー */
-  const [error, setError] = useState<string | null>(null);
   /** ユーザープロフィール */
   const [userProfile, setUserProfile] = useState<UserProfileFormData | null>(null);
+  /** エラーハンドラー */
+  const { handleError } = useErrorHandler();
 
   /**
    * 食事データの取得
@@ -53,8 +54,7 @@ export function DashboardCharts() {
 
       setMeals(mealsWithId);
     } catch (error) {
-      console.error('食事記録の取得エラー:', error);
-      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+      handleError(error, '食事記録の取得に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -69,15 +69,14 @@ export function DashboardCharts() {
         credentials: 'include', // Cookieを含める
       });
       if (!response.ok) {
-        console.error('プロフィールの取得に失敗しました');
-        return;
+        throw new Error('プロフィールの取得に失敗しました');
       }
       const result = await response.json();
       if (result.success && result.data) {
         setUserProfile(result.data);
       }
     } catch (error) {
-      console.error('プロフィールの取得エラー:', error);
+      handleError(error, 'プロフィールの取得に失敗しました');
     }
   };
 
@@ -106,8 +105,7 @@ export function DashboardCharts() {
       // 削除成功後、食事記録を再取得
       await fetchMeals();
     } catch (error) {
-      console.error('食事記録の削除エラー:', error);
-      setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました');
+      handleError(error, '食事記録の削除に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -218,23 +216,6 @@ export function DashboardCharts() {
   }
 
   /**
-   * エラー時の表示
-   */
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-        {error}
-        <button 
-          onClick={handleRefresh}
-          className="ml-4 text-red-600 underline"
-        >
-          再読み込み
-        </button>
-      </div>
-    );
-  }
-
-  /**
    * 目標が設定されているかどうかを確認
    */
   const hasTargets = Boolean(
@@ -269,66 +250,74 @@ export function DashboardCharts() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 総摂取カロリー */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3 mb-4">
-            <FireIcon className="w-6 h-6 text-blue-500" />
-            <h2 className="text-xl font-semibold text-gray-800">
-              {selectedDate === new Date().toISOString().split('T')[0] ? '今日' : selectedDate.replace(/-/g, '/')}の総摂取カロリー
-            </h2>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-gray-900">
-              {Math.round(totalNutrition.kcal)}
-            </span>
-            <span className="text-gray-600">kcal</span>
-            {userProfile?.targetCalories && (
-              <span className="text-gray-500 ml-2">
-                / 目標 {userProfile.targetCalories}kcal ({Math.round((totalNutrition.kcal / userProfile.targetCalories) * 100) || 0}%)
-              </span>
-            )}
-          </div>
+      {meals.length === 0 && !isLoading ? (
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
+          食事記録がありません。新しい食事を記録してみましょう。
         </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 総摂取カロリー */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <FireIcon className="w-6 h-6 text-blue-500" />
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {selectedDate === new Date().toISOString().split('T')[0] ? '今日' : selectedDate.replace(/-/g, '/')}の総摂取カロリー
+                </h2>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-bold text-gray-900">
+                  {Math.round(totalNutrition.kcal)}
+                </span>
+                <span className="text-gray-600">kcal</span>
+                {userProfile?.targetCalories && (
+                  <span className="text-gray-500 ml-2">
+                    / 目標 {userProfile.targetCalories}kcal ({Math.round((totalNutrition.kcal / userProfile.targetCalories) * 100) || 0}%)
+                  </span>
+                )}
+              </div>
+            </div>
 
-        {/* 栄養バランス */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3 mb-4">
-            <ChartBarIcon className="w-6 h-6 text-blue-500" />
-            <h2 className="text-xl font-semibold text-gray-800">
-              栄養バランス
-            </h2>
+            {/* 栄養バランス */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <ChartBarIcon className="w-6 h-6 text-blue-500" />
+                <h2 className="text-xl font-semibold text-gray-800">
+                  栄養バランス
+                </h2>
+              </div>
+              <NutritionBalanceChart totalNutrition={totalNutrition} />
+            </div>
           </div>
-          <NutritionBalanceChart totalNutrition={totalNutrition} />
-        </div>
-      </div>
 
-      {/* 目標との比較 */}
-      {hasTargets && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3 mb-6">
-            <FlagIcon className="w-6 h-6 text-blue-500" />
-            <h2 className="text-xl font-semibold text-gray-800">
-              目標との比較
-            </h2>
+          {/* 目標との比較 */}
+          {hasTargets && (
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <FlagIcon className="w-6 h-6 text-blue-500" />
+                <h2 className="text-xl font-semibold text-gray-800">
+                  目標との比較
+                </h2>
+              </div>
+              <GoalComparisonCharts totalNutrition={totalNutrition} userProfile={userProfile} />
+            </div>
+          )}
+
+          {/* その日の食事記録 */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex items-center gap-3 mb-6">
+              <ClockIcon className="w-6 h-6 text-blue-500" />
+              <h2 className="text-xl font-semibold text-gray-800">
+                {selectedDate === new Date().toISOString().split('T')[0] ? '今日' : selectedDate.replace(/-/g, '/')}の食事記録
+              </h2>
+            </div>
+            <MealRecordList 
+              selectedDateMeals={selectedDateMeals} 
+              handleDeleteMeal={handleDeleteMeal}
+            />
           </div>
-          <GoalComparisonCharts totalNutrition={totalNutrition} userProfile={userProfile} />
-        </div>
+        </>
       )}
-
-      {/* その日の食事記録 */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex items-center gap-3 mb-6">
-          <ClockIcon className="w-6 h-6 text-blue-500" />
-          <h2 className="text-xl font-semibold text-gray-800">
-            {selectedDate === new Date().toISOString().split('T')[0] ? '今日' : selectedDate.replace(/-/g, '/')}の食事記録
-          </h2>
-        </div>
-        <MealRecordList 
-          selectedDateMeals={selectedDateMeals} 
-          handleDeleteMeal={handleDeleteMeal}
-        />
-      </div>
     </div>
   );
 } 
