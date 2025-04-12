@@ -6,6 +6,7 @@
 export interface FoodSearchResult {
   foodId: string;
   label: string;
+  originalLabel?: string;
   nutrients: {
     ENERC_KCAL: number;
     PROCNT: number;

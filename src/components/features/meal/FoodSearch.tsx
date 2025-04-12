@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { FoodSearchResult } from '@/lib/types';
+import { useErrorHandler } from '@/lib/hooks';
 
 /**
  * 食品検索コンポーネントのProps
@@ -22,10 +23,10 @@ export function FoodSearch({ onSelect }: FoodSearchProps) {
   const [results, setResults] = useState<FoodSearchResult[]>([]);
   /** ローディング状態 */
   const [isLoading, setIsLoading] = useState(false);
-  /** エラー */
-  const [error, setError] = useState<string | null>(null);
   /** 検索コンテナの参照 */
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  /** エラーハンドラー */
+  const { handleError } = useErrorHandler();
 
   /**
    * クリックされた場所が検索コンテナの外にある場合、検索結果をクリア
@@ -50,21 +51,62 @@ export function FoodSearch({ onSelect }: FoodSearchProps) {
     if (!query.trim()) return;
 
     setIsLoading(true);
-    setError(null);
+    setResults([]);
 
     try {
-      const response = await fetch(`/api/food/search?query=${encodeURIComponent(query)}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒タイムアウト
+
+      const response = await fetch(`/api/food/search?query=${encodeURIComponent(query)}`, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error('食品の検索に失敗しました');
+        const errorText = await response.text();
+        throw new Error(`検索エラー (${response.status}): ${errorText}`);
       }
+      
       const data = await response.json();
+      
+      // エラーレスポンスのチェック
+      if (data && data.error) {
+        throw new Error(data.error);
+      }
+      
+      // 結果が配列でなければエラー
+      if (!Array.isArray(data)) {
+        throw new Error('サーバーから不正な応答がありました');
+      }
+      
       setResults(data);
+      
+      // 結果がないときのフィードバック
+      if (data.length === 0) {
+        handleError(`「${query}」に一致する食品が見つかりませんでした`, '検索結果なし');
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        handleError('検索がタイムアウトしました。もう一度お試しください。', '検索タイムアウト');
+      } else {
+        handleError(err, '食品の検索中にエラーが発生しました');
+      }
       setResults([]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  /**
+   * 検索クエリをクリア
+   */
+  const clearSearch = () => {
+    setQuery('');
+    setResults([]);
   };
 
   /**
@@ -77,6 +119,18 @@ export function FoodSearch({ onSelect }: FoodSearchProps) {
     setResults([]);
   };
 
+  /**
+   * Enterキーで検索
+   */
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      searchFood();
+    } else if (e.key === 'Escape') {
+      clearSearch();
+    }
+  };
+
   return (
     <div className="w-full" ref={searchContainerRef}>
       <div className="mb-4">
@@ -85,38 +139,41 @@ export function FoodSearch({ onSelect }: FoodSearchProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                searchFood();
-              }
-            }}
+            onKeyDown={handleKeyDown}
             placeholder="食品名を入力して検索..."
-            className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+            className="w-full px-4 py-2 pr-20 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+            disabled={isLoading}
           />
+          {query && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="absolute right-12 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="入力をクリア"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          )}
           <button
             type="button"
             onClick={searchFood}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+            disabled={isLoading || !query.trim()}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="検索"
           >
             <MagnifyingGlassIcon className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg">
-          {error}
-        </div>
-      )}
-
       {isLoading ? (
-        <div className="flex justify-center py-4">
+        <div className="flex justify-center py-4 text-blue-600">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2">検索中...</span>
         </div>
       ) : (
         results.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm max-h-96 overflow-y-auto">
             <ul className="divide-y divide-gray-200">
               {results.map((food, index) => (
                 <li
@@ -125,11 +182,14 @@ export function FoodSearch({ onSelect }: FoodSearchProps) {
                   onClick={() => handleSelect(food)}
                 >
                   <div className="font-medium text-gray-900">{food.label}</div>
-                  <div className="mt-1 text-gray-600">
+                  {'originalLabel' in food && food.originalLabel && food.originalLabel !== food.label && (
+                    <div className="text-xs text-gray-500 mb-1">{food.originalLabel}</div>
+                  )}
+                  <div className="mt-1 text-gray-600 text-sm">
                     {Math.round(food.nutrients.ENERC_KCAL)}kcal / 
-                    タンパク質: {Math.round(food.nutrients.PROCNT)}g / 
-                    脂質: {Math.round(food.nutrients.FAT)}g / 
-                    炭水化物: {Math.round(food.nutrients.CHOCDF)}g
+                    P: {Math.round(food.nutrients.PROCNT)}g / 
+                    F: {Math.round(food.nutrients.FAT)}g / 
+                    C: {Math.round(food.nutrients.CHOCDF)}g
                   </div>
                 </li>
               ))}
