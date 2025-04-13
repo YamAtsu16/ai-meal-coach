@@ -139,19 +139,19 @@ export function MealHistory() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-2">
           <h2 className="text-xl font-semibold text-gray-800">
             過去の食事記録
           </h2>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => changeMonth('prev')}
               className="p-1 text-gray-700 hover:text-gray-900"
             >
               <ArrowLeftIcon className="w-5 h-5" />
             </button>
-            <span className="text-lg font-medium text-gray-800">
+            <span className="text-base sm:text-lg font-medium text-gray-800 whitespace-nowrap">
               {format(currentMonth, 'yyyy年M月', { locale: ja })}
             </span>
             <button
@@ -188,29 +188,29 @@ export function MealHistory() {
                   isSelected ? 'border-blue-500 bg-blue-50' : 
                   isPast && mealsForDay.length > 0 ? 'border-gray-200 hover:border-blue-300 cursor-pointer' : 
                   'border-gray-100'
-                }`}
+                } min-h-[3.5rem] sm:min-h-[4.5rem]`}
                 onClick={() => isPast && mealsForDay.length > 0 ? setSelectedDate(day) : null}
               >
-                <div className="text-center text-sm font-medium mb-1">
-                  {format(day, 'd日', { locale: ja })}
+                <div className="text-center text-xs sm:text-sm font-medium mb-1">
+                  {format(day, 'd', { locale: ja })}
                 </div>
                 {mealsForDay.length > 0 ? (
                   <div className="flex flex-col items-center">
-                    <div className="flex items-center text-xs font-medium text-gray-800">
-                      {Math.round(nutrition.kcal)}kcal
+                    <div className="flex items-center text-[10px] sm:text-xs font-medium text-gray-800 whitespace-nowrap">
+                      {Math.round(nutrition.kcal)}<span className="hidden sm:inline">kcal</span>
                     </div>
-                    <div className="flex justify-center gap-1 mt-1">
-                      <div className="w-2 h-2 rounded-full bg-blue-500" style={{ opacity: nutrition.protein > 0 ? 1 : 0.2 }}></div>
-                      <div className="w-2 h-2 rounded-full bg-red-500" style={{ opacity: nutrition.fat > 0 ? 1 : 0.2 }}></div>
-                      <div className="w-2 h-2 rounded-full bg-green-500" style={{ opacity: nutrition.carbs > 0 ? 1 : 0.2 }}></div>
+                    <div className="flex justify-center gap-[2px] sm:gap-1 mt-1">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500" style={{ opacity: nutrition.protein > 0 ? 1 : 0.2 }}></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-500" style={{ opacity: nutrition.fat > 0 ? 1 : 0.2 }}></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500" style={{ opacity: nutrition.carbs > 0 ? 1 : 0.2 }}></div>
                     </div>
                   </div>
                 ) : isPast ? (
-                  <div className="h-[28px] flex items-center justify-center">
-                    <span className="text-xs text-gray-400">記録なし</span>
+                  <div className="h-[20px] sm:h-[28px] flex items-center justify-center">
+                    <span className="text-[8px] sm:text-xs text-gray-400">記録なし</span>
                   </div>
                 ) : (
-                  <div className="h-[28px]"></div>
+                  <div className="h-[20px] sm:h-[28px]"></div>
                 )}
               </div>
             );
@@ -220,28 +220,28 @@ export function MealHistory() {
 
       {/* 選択された日付の詳細 */}
       {selectedDate && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 break-all sm:break-normal">
               {format(selectedDate, 'yyyy年M月d日(E)', { locale: ja })}の摂取状況
             </h2>
             <button
               onClick={() => setSelectedDate(null)}
-              className="text-sm text-gray-600 hover:text-gray-800"
+              className="text-sm text-gray-600 hover:text-gray-800 self-end sm:self-auto"
             >
               閉じる
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* 総摂取カロリー */}
-            <div className="border border-gray-100 rounded-xl p-4">
+            <div className="border border-gray-100 rounded-xl p-3 sm:p-4">
               <div className="flex items-center gap-2 mb-2">
                 <FireIcon className="w-5 h-5 text-orange-500" />
                 <h3 className="text-md font-medium text-gray-800">総摂取カロリー</h3>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-xl sm:text-2xl font-bold text-gray-900">
                   {Math.round(calculateNutritionForDate(selectedDate).kcal)}
                 </span>
                 <span className="text-gray-600">kcal</span>
@@ -249,30 +249,30 @@ export function MealHistory() {
             </div>
 
             {/* 栄養バランス */}
-            <div className="border border-gray-100 rounded-xl p-4">
+            <div className="border border-gray-100 rounded-xl p-3 sm:p-4">
               <div className="flex items-center gap-2 mb-2">
                 <ChartBarIcon className="w-5 h-5 text-blue-500" />
                 <h3 className="text-md font-medium text-gray-800">栄養バランス</h3>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1 sm:gap-2">
                 <div className="flex flex-col items-center">
                   <div className="w-3 h-3 rounded-full bg-blue-500 mb-1"></div>
-                  <div className="text-xs font-medium text-gray-800">タンパク質</div>
-                  <div className="text-sm font-bold text-gray-900">
+                  <div className="text-[10px] sm:text-xs font-medium text-gray-800">タンパク質</div>
+                  <div className="text-xs sm:text-sm font-bold text-gray-900">
                     {Math.round(calculateNutritionForDate(selectedDate).protein * 4)}kcal
                   </div>
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="w-3 h-3 rounded-full bg-red-500 mb-1"></div>
-                  <div className="text-xs font-medium text-gray-800">脂質</div>
-                  <div className="text-sm font-bold text-gray-900">
+                  <div className="text-[10px] sm:text-xs font-medium text-gray-800">脂質</div>
+                  <div className="text-xs sm:text-sm font-bold text-gray-900">
                     {Math.round(calculateNutritionForDate(selectedDate).fat * 9)}kcal
                   </div>
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="w-3 h-3 rounded-full bg-green-500 mb-1"></div>
-                  <div className="text-xs font-medium text-gray-800">炭水化物</div>
-                  <div className="text-sm font-bold text-gray-900">
+                  <div className="text-[10px] sm:text-xs font-medium text-gray-800">炭水化物</div>
+                  <div className="text-xs sm:text-sm font-bold text-gray-900">
                     {Math.round(calculateNutritionForDate(selectedDate).carbs * 4)}kcal
                   </div>
                 </div>
