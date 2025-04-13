@@ -82,7 +82,7 @@ export function Toast({
 
   return (
     <div 
-      className={`fixed top-4 right-4 z-50 max-w-sm ${bg} ${border} ${text} border rounded-lg shadow-md transition-all duration-300 transform translate-y-0`}
+      className={`${bg} ${border} ${text} border rounded-lg shadow-md transition-all duration-300 transform translate-y-0`}
       role="alert"
     >
       <div className="flex p-4">

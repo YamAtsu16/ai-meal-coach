@@ -30,10 +30,11 @@ interface ToastProviderProps {
  */
 export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<Array<{ id: number; message: string; type: ToastType; duration?: number }>>([]);
-  let nextId = 0;
+  const [nextId, setNextId] = useState(0);
 
   const showToast = (message: string, type: ToastType, duration = 3000) => {
-    const id = nextId++;
+    const id = nextId;
+    setNextId(prevId => prevId + 1);
     setToasts(prev => [...prev, { id, message, type, duration }]);
   };
 
@@ -44,7 +45,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
+      <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
         {toasts.map(toast => (
           <Toast 
             key={toast.id}

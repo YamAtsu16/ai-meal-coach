@@ -2,11 +2,15 @@
   "name": "ai-meal-coach",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest --config jest.config.mjs",
+    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch --config jest.config.mjs",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage --config jest.config.mjs"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.8.0",
@@ -32,12 +36,19 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "tailwindcss": "^4",
+    "ts-jest": "^29.3.2",
     "typescript": "^5"
   }
 }
