@@ -11,6 +11,7 @@ import { useErrorHandler } from '@/lib/hooks';
  */
 export default function LandingPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { handleError } = useErrorHandler();
 
@@ -26,12 +27,18 @@ export default function LandingPage() {
         setIsAuthenticated(data.authenticated);
         
         // 認証済みの場合はホームページにリダイレクト
+        // ミドルウェアでのリダイレクトと二重で行うことで、
+        // クライアントサイド・サーバーサイド両方で対応
         if (data.authenticated) {
-          router.push('/home');
+          router.replace('/home');
+          return; // 早期リターンを追加
         }
+        
+        setIsLoading(false);
       } catch (error) {
         handleError(error, '認証状態の確認中にエラーが発生しました');
         setIsAuthenticated(false);
+        setIsLoading(false);
       }
     };
     
@@ -39,12 +46,17 @@ export default function LandingPage() {
   }, [router, handleError]);
 
   // ローディング中は何も表示しない
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
+  }
+
+  // 認証済みの場合はレンダリングを停止
+  if (isAuthenticated) {
+    return null;
   }
 
   return (

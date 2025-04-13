@@ -32,6 +32,18 @@ const publicPaths = [
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
+  // トップページで認証済みの場合、ホームページにリダイレクト
+  if (path === '/') {
+    const token = await getToken({ 
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+    
+    if (token) {
+      return NextResponse.redirect(new URL('/home', request.url));
+    }
+  }
+
   // 認証不要のルートは処理をスキップ
   if (publicPaths.some(publicPath => path.startsWith(publicPath))) {
     return NextResponse.next();
