@@ -1,6 +1,6 @@
 // @ts-check
 /** @type {import('jest').Config} */
-export default {
+const config = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
@@ -15,11 +15,23 @@ export default {
     '!src/**/*.d.ts',
     '!**/node_modules/**',
   ],
-  modulePathIgnorePatterns: [
-    '<rootDir>/__tests__/api', 
-    '<rootDir>/__tests__/middleware.test.ts'
-  ],
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }]
-  }
-}; 
+  },
+  transformIgnorePatterns: [
+    '/node_modules/(?!(node-fetch)/)',
+  ],
+  // Next.js App Router向け設定
+  testEnvironmentOptions: {
+    url: 'http://localhost:3000',
+  },
+  // テスト実行時のオプション
+  verbose: true,
+  // テスト対象外ファイルの設定
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '/.next/'
+  ]
+};
+
+export default config; 

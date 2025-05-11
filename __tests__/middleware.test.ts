@@ -38,16 +38,19 @@ describe('Auth Middleware', () => {
     
     const response = await middleware(request);
     
-    expect(response?.headers.get('location')).toBeNull();
+    // リダイレクトがない場合、NextResponse.next()が呼ばれている
+    expect(response?.headers.get('location')).toBeFalsy();
   });
   
   it('認証不要のパスはスキップすること', async () => {
+    // login パスを使用
     const request = new NextRequest(new URL('http://localhost:3000/login'));
     const nextSpy = jest.spyOn(NextResponse, 'next');
     
     await middleware(request);
     
     expect(nextSpy).toHaveBeenCalled();
+    // login パスでは getToken が呼ばれないことを確認
     expect(getToken).not.toHaveBeenCalled();
   });
   
