@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import RegisterPage from '@/app/register/page';
 
@@ -14,22 +14,32 @@ jest.mock('next/navigation', () => ({
   })
 }));
 
+// mockPushの参照を取得
+const mockPush = jest.requireMock('next/navigation').useRouter().push;
+
 // next-auth/reactモジュールをモック
 jest.mock('next-auth/react');
 
 // useErrorHandlerをモック
+const mockHandleError = jest.fn();
 jest.mock('@/lib/hooks', () => ({
   useErrorHandler: () => ({
-    handleError: jest.fn()
+    handleError: mockHandleError,
+    error: null,
+    clearError: jest.fn()
   })
 }));
 
 // useToastをモック
+const mockShowToast = jest.fn();
 jest.mock('@/providers', () => ({
   useToast: () => ({
-    showToast: jest.fn()
+    showToast: mockShowToast
   })
 }));
+
+// timerをモック
+jest.useFakeTimers();
 
 describe('新規登録ページ', () => {
   beforeEach(() => {
@@ -89,5 +99,136 @@ describe('新規登録ページ', () => {
     
     // レスポンスが正しいことを確認
     expect(await response.json()).toEqual({ success: true });
+  });
+
+  it('フォーム送信が成功した場合、トーストが表示され、ログインページにリダイレクトされること', async () => {
+    // フェッチモックを設定
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ success: true })
+    });
+    
+    render(<RegisterPage />);
+    
+    // フォームに値を入力
+    fireEvent.change(screen.getByLabelText('名前'), { target: { value: 'テストユーザー' } });
+    fireEvent.change(screen.getByLabelText('メールアドレス'), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText('パスワード'), { target: { value: 'Password123!' } });
+    fireEvent.change(screen.getByLabelText('パスワード（確認）'), { target: { value: 'Password123!' } });
+    
+    // フォームを送信
+    fireEvent.click(screen.getByRole('button', { name: '登録する' }));
+    
+    // 非同期処理の完了を待つ
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/auth/register', expect.any(Object));
+    });
+    
+    // トーストが表示されることを確認
+    expect(mockShowToast).toHaveBeenCalledWith('登録が完了しました！', 'success');
+    
+    // 成功メッセージが表示されることを確認
+    expect(screen.getByText('登録が完了しました！ログインページに移動します...')).toBeInTheDocument();
+    
+    // タイマーを進める
+    jest.advanceTimersByTime(3000);
+    
+    // ログインページにリダイレクトされることを確認
+    expect(mockPush).toHaveBeenCalledWith('/login');
+  });
+
+  it('APIがエラーを返した場合、エラーハンドラーが呼ばれること', async () => {
+    // エラーレスポンスを返すフェッチモックを設定
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: jest.fn().mockResolvedValue({ error: 'このメールアドレスは既に登録されています' })
+    });
+    
+    render(<RegisterPage />);
+    
+    // フォームに値を入力
+    fireEvent.change(screen.getByLabelText('名前'), { target: { value: 'テストユーザー' } });
+    fireEvent.change(screen.getByLabelText('メールアドレス'), { target: { value: 'existing@example.com' } });
+    fireEvent.change(screen.getByLabelText('パスワード'), { target: { value: 'Password123!' } });
+    fireEvent.change(screen.getByLabelText('パスワード（確認）'), { target: { value: 'Password123!' } });
+    
+    // フォームを送信
+    fireEvent.click(screen.getByRole('button', { name: '登録する' }));
+    
+    // 非同期処理の完了を待つ
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/auth/register', expect.any(Object));
+    });
+    
+    // エラーハンドラーが呼ばれることを確認
+    expect(mockHandleError).toHaveBeenCalledWith(
+      expect.any(Error),
+      '登録に失敗しました'
+    );
+  });
+
+  it('ネットワークエラーが発生した場合、エラーハンドラーが呼ばれること', async () => {
+    // ネットワークエラーを発生させるフェッチモックを設定
+    global.fetch = jest.fn().mockRejectedValue(new Error('ネットワークエラー'));
+    
+    render(<RegisterPage />);
+    
+    // フォームに値を入力して送信
+    fireEvent.change(screen.getByLabelText('名前'), { target: { value: 'テストユーザー' } });
+    fireEvent.change(screen.getByLabelText('メールアドレス'), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText('パスワード'), { target: { value: 'Password123!' } });
+    fireEvent.change(screen.getByLabelText('パスワード（確認）'), { target: { value: 'Password123!' } });
+    
+    fireEvent.click(screen.getByRole('button', { name: '登録する' }));
+    
+    // 非同期処理の完了を待つ
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+    
+    // エラーハンドラーが呼ばれることを確認
+    expect(mockHandleError).toHaveBeenCalledWith(
+      expect.any(Error),
+      '登録に失敗しました'
+    );
+  });
+
+  it('フォーム送信中はボタンが無効化されること', async () => {
+    // 応答を遅延させるフェッチモックを設定
+    global.fetch = jest.fn().mockImplementation(() => new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true })
+        });
+      }, 1000);
+    }));
+    
+    render(<RegisterPage />);
+    
+    // 登録ボタンを取得
+    const submitButton = screen.getByRole('button', { name: '登録する' });
+    
+    // フォームに値を入力して送信
+    fireEvent.change(screen.getByLabelText('名前'), { target: { value: 'テストユーザー' } });
+    fireEvent.change(screen.getByLabelText('メールアドレス'), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText('パスワード'), { target: { value: 'Password123!' } });
+    fireEvent.change(screen.getByLabelText('パスワード（確認）'), { target: { value: 'Password123!' } });
+    
+    fireEvent.click(submitButton);
+    
+    // ボタンのテキストが変更されることを確認
+    await waitFor(() => {
+      expect(submitButton).toHaveTextContent('登録中...');
+      expect(submitButton).toBeDisabled();
+    });
+    
+    // タイマーを進める
+    jest.advanceTimersByTime(1000);
+    
+    // 非同期処理の完了を待つ
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
   });
 }); 

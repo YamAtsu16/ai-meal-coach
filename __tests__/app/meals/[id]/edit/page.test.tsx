@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import EditMealPage from '@/app/meals/[id]/edit/page';
 
@@ -54,15 +54,12 @@ describe('食事記録編集ページ', () => {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
-            success: true,
-            data: {
-              id: '123',
-              title: 'テスト食事',
-              mealType: 'breakfast',
-              date: '2023-06-15',
-              foods: [],
-              notes: 'テスト'
-            }
+            _id: '123',
+            title: 'テスト食事',
+            mealType: 'breakfast',
+            date: '2023-06-15',
+            foods: [],
+            notes: 'テスト'
           })
         });
       }
@@ -125,15 +122,93 @@ describe('食事記録編集ページ', () => {
     
     // レスポンスデータが正しいことを確認
     expect(data).toEqual({
-      success: true,
-      data: {
-        id: '123',
-        title: 'テスト食事',
-        mealType: 'breakfast',
-        date: '2023-06-15',
-        foods: [],
-        notes: 'テスト'
-      }
+      _id: '123',
+      title: 'テスト食事',
+      mealType: 'breakfast',
+      date: '2023-06-15',
+      foods: [],
+      notes: 'テスト'
     });
+  });
+
+  it('食事記録の取得に失敗した場合にエラーメッセージが表示されること', async () => {
+    // フェッチAPIのエラーモック
+    global.fetch = jest.fn().mockImplementation(() => {
+      return Promise.resolve({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found'
+      });
+    });
+
+    render(<EditMealPage params={Promise.resolve({ id: '123' })} />);
+    
+    // エラーメッセージが表示されるまで待機
+    await waitFor(() => {
+      expect(screen.getByText('食事記録の取得に失敗しました')).toBeInTheDocument();
+    });
+  });
+
+  it('食事記録が見つからない場合にエラーメッセージが表示されること', async () => {
+    // フェッチAPIのモック（データなし）
+    global.fetch = jest.fn().mockImplementation(() => {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(null)
+      });
+    });
+
+    render(<EditMealPage params={Promise.resolve({ id: '123' })} />);
+    
+    // エラーメッセージが表示されるまで待機
+    await waitFor(() => {
+      expect(screen.getByText('食事記録が見つかりません')).toBeInTheDocument();
+    });
+  });
+
+  it('IDに基づいて食事記録を取得するuseEffectが正しく動作すること', async () => {
+    render(<EditMealPage params={Promise.resolve({ id: '456' })} />);
+    
+    // フェッチが正しいURLで呼ばれることを確認
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/meals/123', expect.any(Object));
+    });
+  });
+
+  it('MongoDBの_idをidとしても設定する処理が正しく動作すること', async () => {
+    // MongoDBスタイルのレスポンスをモック
+    global.fetch = jest.fn().mockImplementation(() => {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          _id: 'mongo-id-123',
+          title: 'MongoDB形式の食事',
+          mealType: 'lunch',
+          date: '2023-06-15',
+          foods: [],
+          notes: 'テスト'
+        })
+      });
+    });
+
+    // コンソールエラーをスパイ
+    const consoleSpy = jest.spyOn(console, 'error');
+    consoleSpy.mockImplementation(() => {});
+
+    // 実際のコンポーネントをレンダリング
+    render(<EditMealPage params={Promise.resolve({ id: '123' })} />);
+    
+    // ローディングが終わるまで待機
+    await waitFor(() => {
+      expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
+    });
+
+    // MealRecordFormが表示されていることを確認（データが正しく変換されたことを示す）
+    expect(screen.getByTestId('meal-record-form')).toBeInTheDocument();
+    
+    // エラーが発生していないことを確認
+    expect(consoleSpy).not.toHaveBeenCalled();
+    
+    consoleSpy.mockRestore();
   });
 }); 
