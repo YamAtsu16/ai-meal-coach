@@ -20,7 +20,7 @@ export async function analyzeMeals(
     
     // OpenAI APIを呼び出して分析を実行
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
